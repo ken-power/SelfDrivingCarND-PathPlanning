@@ -34,6 +34,44 @@ The car uses a perfect controller and will visit every `(x,y)` point it recieves
 There will be some latency between the simulator running and the path planner returning a path, with optimized code usually its not very long maybe just 1-3 time steps. During this delay the simulator will continue using points that it was last given, because of this its a good idea to store the last points you have used so you can have a smooth transition. `previous_path_x`, and `previous_path_y` can be helpful for this transition since they show the last points given to the simulator controller with the processed points already removed. You would either return a path that extends this previous path or make sure to create a new path that has a smooth transition with this last path.
 
 
+# Project Specification
+
+## Compilation
+**The code compiles correctly.**
+
+Code must compile without errors with cmake and make.
+
+## Valid Trajectories
+**The car is able to drive at least 4.32 miles without incident.**
+
+The top right screen of the simulator shows the current/best miles driven without incident. Incidents include exceeding acceleration/jerk/speed, collision, and driving outside of the lanes. Each incident case is also listed below in more detail.
+
+**The car drives according to the speed limit.**
+
+The car doesn't drive faster than the speed limit. Also the car isn't driving much slower than speed limit unless obstructed by traffic.
+
+**Max Acceleration and Jerk are not Exceeded.**
+
+The car does not exceed a total acceleration of 10 m/s^2 and a jerk of 10 m/s^3.
+
+**Car does not have collisions.**
+
+The car must not come into contact with any of the other cars on the road.
+
+**The car stays in its lane, except for the time between changing lanes.**
+
+The car doesn't spend more than a 3 second length out side the lane lanes during changing lanes, and every other time the car stays inside one of the 3 lanes on the right hand side of the road.
+
+**The car is able to change lanes**
+
+The car is able to smoothly change lanes when it makes sense to do so, such as when behind a slower moving car and an adjacent lane is clear of other traffic.
+
+## Reflection
+
+**There is a reflection on how to generate paths.**
+
+The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation".
+
 # Building and running the project
 
 ## Code Style
