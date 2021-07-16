@@ -123,7 +123,18 @@ int main()
                     double distance_increment = 0.5;  // 0.5 meters is how much the points are spaced apart - turns out to be pretty close to the speed limit of 50mph
                     // DriveInStraightLine(distance_increment, car_x, car_y, car_yaw, next_x_vals, next_y_vals);
                     // DriveInCircles(distance_increment, car_x, car_y, car_yaw, previous_path_x, previous_path_y, next_x_vals, next_y_vals);
-                    
+                    for(int i = 0; i < 50; ++i)
+                    {
+                        // Frenet will be helpful to stay in our lane
+                        double next_s = car_s + (i+1) * distance_increment; // use i+1 to get next point, else car will sit still and won't be transitioning
+                        double next_d = 6;  // we are in the middle lane; waypooints are measured from double yellow line in middle of road; so we are 1.5 lanes from where the waypoints are; lanes are 4m wide; so, 1.5 lanes x 4m = 6 ; this highlihgts one of the things that is helpful about Frenet - if we want to stay in the same lane, then d is constant
+
+                        vector<double> xy = getXY(next_s, next_d, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+
+                        next_x_vals.push_back(xy[0]);
+                        next_y_vals.push_back(xy[1]);
+                    }
+
 
                     // -------- END OF PROJECT-SPECIFIC CODE --------
                     msgJson["next_x"] = next_x_vals;
