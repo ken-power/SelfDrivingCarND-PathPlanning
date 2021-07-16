@@ -72,6 +72,39 @@ The car is able to smoothly change lanes when it makes sense to do so, such as w
 
 The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation".
 
+# Design Notes
+
+## Highway Map
+
+### About the Highway
+* The [map file](data/highway_map.csv) contains a list of waypoints that go all the way around the track. 
+* The track contains a total of 181 waypoints, with the last waypoint mapping back around to the first. The waypoints are in the middle of the double-yellow dividing line in the center of the highway.
+* The track is 6945.554 meters around (about 4.32 miles). If the car averages near 50 MPH, then it should take a little more than 5 minutes for it to go all the way around the highway.
+* The highway has 6 lanes total - 3 heading in each direction. Each lane is 4 m wide and the car should only ever be in one of the 3 lanes on the right-hand side. The car should always be inside a lane unless doing a lane change.
+
+### Waypoints and Highway Measurements
+Each waypoint has an `(x,y)` global map position, and a Frenet s value and Frenet d unit normal vector (split up into the `x` component, and the `y` component).
+
+The `s` value is the distance along the direction of the road. The first waypoint has an s value of `0` because it is the starting point.
+
+The `d` vector has a magnitude of `1` and points perpendicular to the road in the direction of the right-hand side of the road. The `d` vector can be used to calculate lane positions. For example, if you want to be in the left lane at some waypoint just add the waypoint's `(x,y)` coordinates with the `d` vector multiplied by 2. Since the lane is 4 m wide, the middle of the left lane (the lane closest to the double-yellow dividing line) is 2 m from the waypoint.
+
+If you would like to be in the middle lane, add the waypoint's coordinates to the `d` vector multiplied by 6 = (2+4), since the center of the middle lane is 4 m from the center of the left lane, which is itself 2 m from the double-yellow dividing line and the waypoints.
+### Converting Frenet Coordinates
+
+There is a helper function, `getXY()`, in [helpers.h](src/helpers.h) which takes in Frenet `(s,d)` coordinates and transforms them to `(x,y)` coordinates.
+
+### Interpolating Points
+
+To estimate the location of points between the known waypoints, we need to "interpolate" the position of those points.
+
+Once we have a polynomial function, we can use it to interpolate the location of a new point.
+
+There are also other methods we could use. For example, Bezier curve fitting with control points, or spline fitting, which guarantees that the generated function passes through every point.
+
+
+
+
 # Building and running the project
 
 ## Code Style
@@ -105,6 +138,8 @@ src
 * uWebSockets
     * Set up and install [uWebSocketIO](https://github.com/uWebSockets/uWebSockets)
     * Note: the branch `e94b6e1` is the version of `uWebSocketIO` that works with the Udacity simulator
+* C++ cubic spline interpolation
+    * The latest version is [from GitHub](https://github.com/ttk592/spline/)  
 
 ## Basic Build Instructions
 
@@ -115,6 +150,12 @@ src
 4. Run it: `./path_planning`
 
 
+# Some Example Output
+
+This is a **bad** example where the car just drives in circles. There are lots of collisions, and the car exceeds acceleration, speed, and jerk limits. 
+
+![Driving in Circles](videos/driving_in_circles.gif)
+
 # References
 
-* kluge.in-chemnitz.de, 2021. [Cubic Spline interpolation in C++](https://kluge.in-chemnitz.de/opensource/spline/).
+* Tino Kluge. [Cubic Spline interpolation in C++](https://kluge.in-chemnitz.de/opensource/spline/). kluge.in-chemnitz.de/.
