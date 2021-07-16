@@ -2,7 +2,11 @@
 
 I completed this project as part of [Udacity](https://www.udacity.com)'s [Self-driving Car Engineer Nanodegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013). 
 
-The goal of this project is to safely navigate around a virtual highway with other traffic that is driving +-10 MPH of the 50 MPH speed limit. 
+# Project Goal
+
+The goal of this project is to build a path planner that creates smooth, safe trajectories for the car to follow. The highway track has other vehicles, all going different speeds, but approximately obeying the 50 MPH speed limit.
+
+The objective is to safely navigate around a virtual highway with other traffic that is driving +-10 MPH of the 50 MPH speed limit. 
 
 We are provided with the car's localization and sensor fusion data. There is also a sparse map list of waypoints around the highway. The car should try to go as close as possible to the 50 MPH speed limit, which means passing slower traffic when possible. 
 
@@ -36,43 +40,60 @@ There will be some latency between the simulator running and the path planner re
 
 # Project Specification
 
-## Compilation
-**The code compiles correctly.**
-
-Code must compile without errors with cmake and make.
-
-## Valid Trajectories
-**The car is able to drive at least 4.32 miles without incident.**
-
-The top right screen of the simulator shows the current/best miles driven without incident. Incidents include exceeding acceleration/jerk/speed, collision, and driving outside of the lanes. Each incident case is also listed below in more detail.
-
-**The car drives according to the speed limit.**
-
-The car doesn't drive faster than the speed limit. Also the car isn't driving much slower than speed limit unless obstructed by traffic.
-
-**Max Acceleration and Jerk are not Exceeded.**
-
-The car does not exceed a total acceleration of 10 m/s^2 and a jerk of 10 m/s^3.
-
-**Car does not have collisions.**
-
-The car must not come into contact with any of the other cars on the road.
-
-**The car stays in its lane, except for the time between changing lanes.**
-
-The car doesn't spend more than a 3 second length out side the lane lanes during changing lanes, and every other time the car stays inside one of the 3 lanes on the right hand side of the road.
-
-**The car is able to change lanes**
-
-The car is able to smoothly change lanes when it makes sense to do so, such as when behind a slower moving car and an adjacent lane is clear of other traffic.
-
-## Reflection
-
-**There is a reflection on how to generate paths.**
-
-The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation".
+|Category | Criteria | Specification
+|:--- | :--- | :---
+**Compilation** | The code compiles correctly.| Code must compile without errors with cmake and make.
+**Valid Trajectories** | The car is able to drive at least 4.32 miles without incident.| The top right screen of the simulator shows the current/best miles driven without incident. Incidents include exceeding acceleration/jerk/speed, collision, and driving outside of the lanes. Each incident case is also listed below in more detail.
+| | The car drives according to the speed limit. | The car doesn't drive faster than the speed limit. Also the car isn't driving much slower than speed limit unless obstructed by traffic.
+| | Max Acceleration and Jerk are not Exceeded.| The car does not exceed a total acceleration of 10 m/s^2 and a jerk of 10 m/s^3.
+| | Car does not have collisions. | The car must not come into contact with any of the other cars on the road.
+| | The car stays in its lane, except for the time between changing lanes. | The car doesn't spend more than a 3 second length out side the lane lanes during changing lanes, and every other time the car stays inside one of the 3 lanes on the right hand side of the road.
+| | The car is able to change lanes | The car is able to smoothly change lanes when it makes sense to do so, such as when behind a slower moving car and an adjacent lane is clear of other traffic.
+**Reflection** | There is a reflection on how to generate paths.|The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation".
 
 # Design Notes
+
+The goal of this project is to build a path planner that creates smooth, safe trajectories for the car to follow. The highway track has other vehicles, all going different speeds, but approximately obeying the 50 MPH speed limit.
+
+The car transmits its location, along with its sensor fusion data, which estimates the location of all the vehicles on the same side of the road.
+
+## Point Paths
+The path planner should output a list of `x` and `y` global map coordinates. Each pair of `x` and `y` coordinates is a point, and all the points together form a trajectory. We can use any number of points that we want, but the `x` list should be the same length as the `y` list.
+
+Every 20 ms the car moves to the next point on the list. The car's new rotation becomes the line between the previous waypoint and the car's new location.
+
+The car moves from point to point perfectly, so we don't have to worry about building a controller for this project.
+
+## Velocity
+The velocity of the car depends on the spacing of the points. Because the car moves to a new waypoint every 20ms, the larger the spacing between points, the faster the car will travel. The speed goal is to have the car traveling at (but not above) the 50 MPH speed limit as often as possible. But there will be times when traffic gets in the way.
+
+## Acceleration and Jerk
+
+Acceleration is calculated by comparing the rate of change of average speed over intervals of 0.2 seconds. The jerk is calculated as the average acceleration over 1-second intervals. In order for the passenger to have an enjoyable ride both the jerk and the total acceleration should not exceed 10 m/s^2.
+
+Part of the total acceleration is the normal component, `AccN` which measures the centripetal acceleration from turning. The tighter and faster a turn is made, the higher the `AccN` value will be.
+
+For this project we need to consider how to minimize total acceleration and jerk by gradually increasing and decreasing point path spacing based on the `car_speed` variable.
+
+## Complex Paths
+
+### Using Previous Path Points
+
+Using information from the previous path ensures that there is a smooth transition from cycle to cycle. But the more waypoints we use from the previous path, the less the new path will reflect dynamic changes in the environment.
+
+Ideally, we might only use a few waypoints from the previous path and then generate the rest of the new path based on new data from the car's sensor fusion information.
+
+### Timing
+The simulator runs a cycle every 20 ms (50 frames per second), but my C++ path planning program will provide a new path at least one 20 ms cycle behind. The simulator will simply keep progressing down its last given path while it waits for a new generated path.
+
+This means that using previous path data becomes even more important when higher latency is involved. Imagine, for instance, that there is a 500ms delay in sending a new path to the simulator. As long as the new path incorporates a sufficient length of the previous path, the transition will still be smooth.
+
+A concern, though, is how accurately we can predict other traffic 1-2 seconds into the future. An advantage of newly generated paths is that they take into account the most up-to-date state of other traffic.
+
+### Setting Point Paths with Latency
+My C++ path planner will at the very least be one cycle behind the simulator because the C++ program can't receive and send data on the same cycle. As a result, any path that the simulator receives will be from the perspective of a previous cycle. This might mean that by the time a new path reaches the simulator, the vehicle has already passed the first few waypoints on that path.
+
+Luckily we don't have to worry about this too much for this project. The simulator has built-in tools to deal with this timing difference. The simulator actually expects the received path to be a little out of date compared to where the car is, and the simulator will consider which point on the received path is closest to the car and adjust appropriately.
 
 ## Highway Map
 
@@ -103,7 +124,29 @@ Once we have a polynomial function, we can use it to interpolate the location of
 There are also other methods we could use. For example, Bezier curve fitting with control points, or spline fitting, which guarantees that the generated function passes through every point.
 
 
+## Sensor Fusion
 
+It is important that the car does not crash into any of the other vehicles on the road, all of which are moving at different speeds around the speed limit and can change lanes.
+
+The `sensor_fusion` variable contains all the information about the cars on the right-hand side of the road.
+
+The data format for each car is: `[ id, x, y, vx, vy, s, d]`. 
+* The `id` is a unique identifier for that car. 
+* The `x, y` values are in global map coordinates.
+* The `vx, vy` values are the velocity components, also in reference to the global map. 
+* Finally `s` and `d` are the Frenet coordinates for that car.
+
+The `vx, vy` values can be useful for predicting where the cars will be in the future. For instance, if you were to assume that the tracked car kept moving along the road, then its future predicted Frenet `s` value will be its current `s` value plus its (transformed) total velocity (m/s) multiplied by the time elapsed into the future (s).
+
+## Changing Lanes
+
+The last consideration is how to create paths that can smoothly changes lanes. Any time the ego vehicle approaches a car in front of it that is moving slower than the speed limit, the ego vehicle should consider changing lanes.
+
+The car should only change lanes if such a change would be safe, and also if the lane change would help it move through the flow of traffic better.
+
+For safety, a lane change path should optimize the distance away from other traffic. For comfort, a lane change path should also result in low acceleration and jerk. The acceleration and jerk part can be solved from linear equations for `s` and `d` functions. Examples of this can be found in "Quintic Polynomial Solver" and "Polynomial Trajectory".
+
+The `Eigen-3.3` library can solve such linear equations. The `getXY` helper function can transform `(s,d)` points to `(x,y)` points for the returned path.
 
 # Building and running the project
 
