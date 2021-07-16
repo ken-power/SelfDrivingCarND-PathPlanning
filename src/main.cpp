@@ -58,7 +58,7 @@ int main()
     int lane = 1;
 
     // Move a reference velocity to target
-    double reference_velocity = 49.5;  //mph
+    double reference_velocity = 0.0;  //mph
 
     h.onMessage([&reference_velocity, &map_waypoints_x, &map_waypoints_y, &map_waypoints_s,
                         &map_waypoints_dx, &map_waypoints_dy, &lane ]
@@ -69,7 +69,6 @@ int main()
         // The 2 signifies a websocket event
         if(length && length > 2 && data[0] == '4' && data[1] == '2')
         {
-
             auto s = hasData(data);
 
             if(s != "")
@@ -93,6 +92,7 @@ int main()
                     // Previous path data given to the Planner
                     auto previous_path_x = j[1]["previous_path_x"];
                     auto previous_path_y = j[1]["previous_path_y"];
+
                     // Previous path's end s and d values
                     double end_path_s = j[1]["end_path_s"];
                     double end_path_d = j[1]["end_path_d"];
@@ -101,12 +101,58 @@ int main()
                     auto sensor_fusion = j[1]["sensor_fusion"];
 
                     /**
-                     * TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
+                     * Define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
                      */
                     // ------------------------------------------------
                     // ------------------------------------------------
                     // -------- START OF PROJECT-SPECIFIC CODE --------
                     int previous_path_size = previous_path_x.size();
+
+
+                    if(previous_path_size > 0)
+                    {
+                        car_s = end_path_s;
+                    }
+
+                    bool too_close = false;
+
+                    // find ref_v to use
+                    for(int i = 0; i < sensor_fusion.size(); i++)
+                    {
+                        // car is in my lane
+                        float d = sensor_fusion[i][6];  // 6th value (the d value) of the i'th car on the road
+                        if(d < (2+4*lane + 2) && d > (2+4*lane-2))  // the d value tells us what lane the car is in
+                        { // if the car is in my lane ...
+                            double vx = sensor_fusion[i][3];  // x velocity
+                            double vy = sensor_fusion[i][4];  // y velocity
+                            double checked_speed = sqrt(vx*vx + vy*vy);
+                            double check_car_s = sensor_fusion[i][5];  // the s value of the car we're looking at
+
+                            check_car_s += ((double)previous_path_size*.02*checked_speed); // if using previous points we can project s value outwards in time - we're looking at where the car will be in the future
+                            // check s values greater than mine and s gap
+                            if((check_car_s > car_s) && ((check_car_s-car_s) < 30))  // if the car is within 30m we need to take action
+                            {
+                                // Do some logic here, lower reference velocity so we don't crash into the car in front
+                                // of us, could also flag to try to change lanes
+                               // reference_velocity = 29.5; // mph
+                               too_close = true;
+
+                               if(lane > 0)
+                               {
+                                   lane = 0;
+                               }
+                            }
+                        }
+                    }
+
+                    if(too_close)
+                    {
+                        reference_velocity -= .224;
+                    }
+                    else if(reference_velocity < 49.5)
+                    {
+                        reference_velocity += .224;
+                    }
 
                     // create a list of widely-spaced (x,y) waypoints, evenly spaced at 30m
                     // later we will interpolate these waypoints with a spline and fill it in with more points that control speed
@@ -150,7 +196,7 @@ int main()
                         ptsy.push_back(ref_y);
                     }
 
-                    // In Frenet add envenly 30m spaced points ahead of the starting reference
+                    // In Frenet add evenly-spaced points 30m apart ahead of the starting reference
                     vector<double> next_wp0 = getXY(car_s+30, (2+4*lane),map_waypoints_s, map_waypoints_x, map_waypoints_y);
                     vector<double> next_wp1 = getXY(car_s+60, (2+4*lane),map_waypoints_s, map_waypoints_x, map_waypoints_y);
                     vector<double> next_wp2 = getXY(car_s+90, (2+4*lane),map_waypoints_s, map_waypoints_x, map_waypoints_y);
@@ -199,7 +245,7 @@ int main()
 
                     // Fill up the rest of our path planner after filling it with previous points, i.e., add on points that are along the spline
                     // Here, we will always output 50 points
-                    for(int i=1; i<= 50-previous_path_x.size(); i++)
+                    for(int i=0; i<= 50-previous_path_x.size(); i++)
                     {
                         double N = (target_dist/(.02 * reference_velocity / 2.24));  // Divide by 2.24 to convert from mph to meters/s
                         double x_point = x_add_on + (target_x) / N;
