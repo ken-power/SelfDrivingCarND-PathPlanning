@@ -116,14 +116,16 @@ int main()
                     vector<double> next_y_vals;
 
                     /**
-                     * TODO: define a path made up of (x,y) points that the car will visit
-                     *   sequentially every .02 seconds
+                     * TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
                      */
-                    double dist_inc = 0.5;
-//                    DriveStraightLine(dist_inc, car_x, car_y, car_yaw, next_x_vals, next_y_vals);
-                    DriveInCircles(dist_inc, car_x, car_y, car_yaw, previous_path_x, previous_path_y, next_x_vals, next_y_vals);
+                     // -------- START OF PROJECT-SPECIFIC CODE --------
 
+                    double distance_increment = 0.5;  // 0.5 meters is how much the points are spaced apart - turns out to be pretty close to the speed limit of 50mph
+                    // DriveInStraightLine(distance_increment, car_x, car_y, car_yaw, next_x_vals, next_y_vals);
+                    // DriveInCircles(distance_increment, car_x, car_y, car_yaw, previous_path_x, previous_path_y, next_x_vals, next_y_vals);
+                    
 
+                    // -------- END OF PROJECT-SPECIFIC CODE --------
                     msgJson["next_x"] = next_x_vals;
                     msgJson["next_y"] = next_y_vals;
 
