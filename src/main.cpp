@@ -7,6 +7,7 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "helpers.h"
 #include "json.hpp"
+#include "spline.h"
 
 // for convenience
 void DriveInStraightLine(double dist_inc,
@@ -20,8 +21,8 @@ void DriveInCircles(double dist_inc,
                     double car_x,
                     double car_y,
                     double car_yaw,
-                    reference previous_path_x,
-                    reference previous_path_y,
+                    auto& previous_path_x,
+                    auto& previous_path_y,
                     vector<double> & next_x_vals,
                     vector<double> & next_y_vals);
 
@@ -120,15 +121,7 @@ int main()
                      */
                     double dist_inc = 0.5;
 //                    DriveStraightLine(dist_inc, car_x, car_y, car_yaw, next_x_vals, next_y_vals);
-
-                    DriveInCircles(dist_inc,
-                                   car_x,
-                                   car_y,
-                                   car_yaw,
-                                   previous_path_x,
-                                   previous_path_y,
-                                   next_x_vals,
-                                   next_y_vals);
+                    DriveInCircles(dist_inc, car_x, car_y, car_yaw, previous_path_x, previous_path_y, next_x_vals, next_y_vals);
 
 
                     msgJson["next_x"] = next_x_vals;
@@ -192,8 +185,8 @@ void DriveInCircles(double dist_inc,
                     double car_x,
                     double car_y,
                     double car_yaw,
-                    reference previous_path_x,
-                    reference previous_path_y,
+                    auto& previous_path_x,
+                    auto& previous_path_y,
                     vector<double> & next_x_vals,
                     vector<double> & next_y_vals)
 {
