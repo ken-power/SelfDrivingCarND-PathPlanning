@@ -51,6 +51,68 @@ There will be some latency between the simulator running and the path planner re
 | | The car is able to change lanes | The car is able to smoothly change lanes when it makes sense to do so, such as when behind a slower moving car and an adjacent lane is clear of other traffic. | Done
 **Reflection** | There is a reflection on how to generate paths.|The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation". | Open
 
+# Solution Overview
+
+## main.cpp
+
+The majority of the code in [main.cpp](src/main.cpp) is dedicated to handling communications with the simulator. We use the uWebSockets library to communicate with the simulator. The primary event handler for this project is `onMessage()`. 
+
+I implemented a [Handler](src/handler.cpp) to handle the message events from the simulator. Every time an `onMessqage` event is received from the simulator, we call the `handle.HandlePathPlanning()` function. This one function call serves as the entry point to my Path Planning implementation, and abstracts away the details of how I implement path planning. This also means I can try different implementation options without changing the event handling code.   
+
+```c++
+...
+
+#include "path_planner.cpp"
+#include "trajectory.cpp"
+#include "handler.cpp"
+
+...
+
+int main()
+{
+  PathPlanner path_planner;
+  Trajectory trajectory = Trajectory(&path_planner);
+  Handler handler = Handler(&trajectory);
+
+  ...
+  h.onMessage(
+          [&handler, &map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy]
+          (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,uWS::OpCode opCode)
+  {
+  ...
+  
+  // ------------------------------------------------
+  // -------- START OF PROJECT-SPECIFIC CODE --------
+
+      // Define the actual (x,y) points we will use for the planner
+      vector<double> next_x_vals;
+      vector<double> next_y_vals;
+      
+      handler.HandlePathPlanning(
+              map_waypoints_x,
+              map_waypoints_y,
+              map_waypoints_s,
+              car_x,
+              car_y,
+              car_s,
+              car_yaw,
+              car_speed,
+              previous_path_x,
+              previous_path_y,
+              sensor_fusion,
+              next_x_vals,
+              next_y_vals);
+      
+      // -------- END OF PROJECT-SPECIFIC CODE --------
+      // ------------------------------------------------
+      ...
+      }
+      ...
+}
+```
+
+The code first creates a `PathPlanner` object, then uses that to create and initialize a `Trajectory` object. The `Handler` object is created and initialized using the `Trajectory` object.
+
 # Design Notes
 
 The goal of this project is to build a path planner that creates smooth, safe trajectories for the car to follow. The highway track has other vehicles, all going different speeds, but approximately obeying the 50 MPH speed limit.
