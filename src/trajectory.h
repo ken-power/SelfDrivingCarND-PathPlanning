@@ -45,6 +45,8 @@ public:
                                double ref_yaw,
                                double reference_velocity);
 
+    PathPlanner *GetPathPlanner();
+
 private:
     PathPlanner * path_planner;
 };

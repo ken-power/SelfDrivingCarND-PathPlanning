@@ -4,6 +4,17 @@
 
 #include "trajectory.h"
 #include "spline.h"
+#include "coordinate_transforms.h"
+
+Trajectory::Trajectory(PathPlanner *path_planner)
+{
+    this->path_planner = path_planner;
+}
+
+PathPlanner *Trajectory::GetPathPlanner()
+{
+    return this->path_planner;
+}
 
 void Trajectory::DetermineStartingReference(double car_x,
                                             double car_y,
@@ -161,9 +172,4 @@ double Trajectory::CalculateTrajectory(vector<double> & next_x_vals,
         }
     }
     return reference_velocity;
-}
-
-Trajectory::Trajectory(PathPlanner *path_planner)
-{
-    this->path_planner = path_planner;
 }
