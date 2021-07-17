@@ -3,3 +3,7 @@
 cmake-build-debug/
 .DS_Store
 
+# Videos are too big for GitHub - I uploaded them to YouTube
+videos/*.mov
+videos/*.mp4
+
