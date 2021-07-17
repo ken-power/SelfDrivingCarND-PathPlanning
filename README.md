@@ -113,7 +113,7 @@ The `d` vector has a magnitude of `1` and points perpendicular to the road in th
 If you would like to be in the middle lane, add the waypoint's coordinates to the `d` vector multiplied by 6 = (2+4), since the center of the middle lane is 4 m from the center of the left lane, which is itself 2 m from the double-yellow dividing line and the waypoints.
 ### Converting Frenet Coordinates
 
-There is a helper function, `getXY()`, in [helpers.h](src/helpers.h) which takes in Frenet `(s,d)` coordinates and transforms them to `(x,y)` coordinates.
+There is a helper function, `Frenet2Cartesian()`, in [network_utils.h](src/network_utils.h) which takes in Frenet `(s,d)` coordinates and transforms them to `(x,y)` coordinates.
 
 ### Interpolating Points
 
@@ -146,7 +146,7 @@ The car should only change lanes if such a change would be safe, and also if the
 
 For safety, a lane change path should optimize the distance away from other traffic. For comfort, a lane change path should also result in low acceleration and jerk. The acceleration and jerk part can be solved from linear equations for `s` and `d` functions. Examples of this can be found in "Quintic Polynomial Solver" and "Polynomial Trajectory".
 
-The `Eigen-3.3` library can solve such linear equations. The `getXY` helper function can transform `(s,d)` points to `(x,y)` points for the returned path.
+The `Eigen-3.3` library can solve such linear equations. The `Frenet2Cartesian` helper function can transform `(s,d)` points to `(x,y)` points for the returned path.
 
 # Building and running the project
 
@@ -160,8 +160,14 @@ The content of [src](src) directory is as follows:
 ```
 src
  |-- Eigen-3.3/
- |-- helpers.h
+ |-- spline.h
  |-- json.hpp
+ |-- coordinate_transforms.h
+ |-- distance_utils.h
+ |-- network_utils.h
+ |-- waypoints.h
+ |-- path_planner.h
+ |-- path_planner.cpp
  |-- main.cpp
 ```
 
