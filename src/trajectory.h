@@ -6,6 +6,7 @@
 #define PATH_PLANNING_TRAJECTORY_H
 
 #include "path_planner.h"
+#include "waypoints.h"
 
 class Trajectory
 {
@@ -26,9 +27,7 @@ public:
                                     double & ref_yaw,
                                     double & reference_velocity);
 
-    void SetWaypoints(const vector<double> & map_waypoints_x,
-                      const vector<double> & map_waypoints_y,
-                      const vector<double> & map_waypoints_s,
+    void SetWaypoints(const WaypointData & waypoint_data,
                       double car_s,
                       double next_d,
                       vector<double> & wp1,

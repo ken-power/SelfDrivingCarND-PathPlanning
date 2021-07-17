@@ -66,9 +66,7 @@ void Trajectory::DetermineStartingReference(double car_x,
 }
 
 
-void Trajectory::SetWaypoints(const vector<double> & map_waypoints_x,
-                              const vector<double> & map_waypoints_y,
-                              const vector<double> & map_waypoints_s,
+void Trajectory::SetWaypoints(const WaypointData & waypoint_data,
                               double car_s,
                               double next_d,
                               vector<double> & wp1,
@@ -80,19 +78,19 @@ void Trajectory::SetWaypoints(const vector<double> & map_waypoints_x,
 
     wp1 = Frenet2Cartesian(car_s + frenet_distance_spacing,
                            next_d,
-                           map_waypoints_s,
-                           map_waypoints_x,
-                           map_waypoints_y);
+                           waypoint_data.map_waypoints_s,
+                           waypoint_data.map_waypoints_x,
+                           waypoint_data.map_waypoints_y);
     wp2 = Frenet2Cartesian(car_s + (frenet_distance_spacing * 2),
                            next_d,
-                           map_waypoints_s,
-                           map_waypoints_x,
-                           map_waypoints_y);
+                           waypoint_data.map_waypoints_s,
+                           waypoint_data.map_waypoints_x,
+                           waypoint_data.map_waypoints_y);
     wp3 = Frenet2Cartesian(car_s + (frenet_distance_spacing * 3),
                            next_d,
-                           map_waypoints_s,
-                           map_waypoints_x,
-                           map_waypoints_y);// Set further waypoints based on going further along highway in desired lane
+                           waypoint_data.map_waypoints_s,
+                           waypoint_data.map_waypoints_x,
+                           waypoint_data.map_waypoints_y);// Set further waypoints based on going further along highway in desired lane
 }
 
 

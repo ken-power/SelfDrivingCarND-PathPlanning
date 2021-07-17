@@ -13,9 +13,7 @@ class Handler
 public:
     Handler(Trajectory *trajectory);
 
-    void HandlePathPlanning(const vector<double> & map_waypoints_x,
-                            const vector<double> & map_waypoints_y,
-                            const vector<double> & map_waypoints_s,
+    void HandlePathPlanning(const WaypointData & waypoint_data,
                             double car_x,
                             double car_y,
                             double car_s,

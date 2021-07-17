@@ -4,6 +4,7 @@
 
 #include "Handler.h"
 #include "coordinate_transforms.h"
+#include "waypoints.h"
 
 Handler::Handler(Trajectory *trajectory)
 {
@@ -12,9 +13,7 @@ Handler::Handler(Trajectory *trajectory)
 }
 
 
-void Handler::HandlePathPlanning(const vector<double> & map_waypoints_x,
-                                 const vector<double> & map_waypoints_y,
-                                 const vector<double> & map_waypoints_s,
+void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
                                  double car_x,
                                  double car_y,
                                  double car_s,
@@ -65,8 +64,8 @@ void Handler::HandlePathPlanning(const vector<double> & map_waypoints_x,
     vector<double> frenet_coords = Cartesian2Frenet(ref_x,
                                                     ref_y,
                                                     ref_yaw,
-                                                    map_waypoints_x,
-                                                    map_waypoints_y);
+                                                    waypoint_data.map_waypoints_x,
+                                                    waypoint_data.map_waypoints_y);
 
     double move = this->path_planner->PlanPath(frenet_coords[0], frenet_coords[1], sensor_fusion);
     double lane = this->path_planner->CurrentLane();
@@ -96,7 +95,7 @@ void Handler::HandlePathPlanning(const vector<double> & map_waypoints_x,
     vector<double> wp1;
     vector<double> wp2;
     vector<double> wp3;
-    this->trajectory->SetWaypoints(map_waypoints_x, map_waypoints_y, map_waypoints_s, car_s, next_d, wp1, wp2, wp3);
+    this->trajectory->SetWaypoints(waypoint_data, car_s, next_d, wp1, wp2, wp3);
 
     ptsx.push_back(wp1[0]);
     ptsx.push_back(wp2[0]);
