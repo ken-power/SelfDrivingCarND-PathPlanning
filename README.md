@@ -162,12 +162,19 @@ src
  |-- Eigen-3.3/
  |-- spline.h
  |-- json.hpp
+ |
  |-- coordinate_transforms.h
  |-- distance_utils.h
  |-- network_utils.h
  |-- waypoints.h
+ |
  |-- path_planner.h
  |-- path_planner.cpp
+ |-- trajectory.h
+ |-- trajectory.cpp
+ |-- handler.h
+ |-- handler.cpp
+ |
  |-- main.cpp
 ```
 
