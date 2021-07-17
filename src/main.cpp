@@ -16,12 +16,13 @@ using nlohmann::json;
 using std::string;
 using std::vector;
 
-PathPlanner path_planner;
-Trajectory trajectory = Trajectory(&path_planner);
-Handler handler = Handler(&trajectory);
 
 int main()
 {
+    PathPlanner path_planner;
+    Trajectory trajectory = Trajectory(&path_planner);
+    Handler handler = Handler(&trajectory);
+
     uWS::Hub h;
 
     // Load up map values for waypoint's x,y,s and d normalized normal vectors
@@ -59,7 +60,7 @@ int main()
         map_waypoints_dy.push_back(d_y);
     }
 
-    h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s,
+    h.onMessage([&handler, &map_waypoints_x, &map_waypoints_y, &map_waypoints_s,
                         &map_waypoints_dx, &map_waypoints_dy]
                         (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                          uWS::OpCode opCode) {
