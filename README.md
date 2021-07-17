@@ -113,7 +113,7 @@ The `d` vector has a magnitude of `1` and points perpendicular to the road in th
 If you would like to be in the middle lane, add the waypoint's coordinates to the `d` vector multiplied by 6 = (2+4), since the center of the middle lane is 4 m from the center of the left lane, which is itself 2 m from the double-yellow dividing line and the waypoints.
 ### Converting Frenet Coordinates
 
-There is a helper function, `Frenet2Cartesian()`, in [network_utils.h](src/network_utils.h) which takes in Frenet `(s,d)` coordinates and transforms them to `(x,y)` coordinates.
+There is a helper function, `Frenet2Cartesian()`, in [coordinate_transforms.h](src/coordinate_transforms.h) which takes in Frenet `(s,d)` coordinates and transforms them to `(x,y)` coordinates.
 
 ### Interpolating Points
 
