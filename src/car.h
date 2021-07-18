@@ -5,6 +5,10 @@
 #ifndef PATH_PLANNING_CAR_H
 #define PATH_PLANNING_CAR_H
 
+#include <vector>
+
+using std::vector;
+
 struct CarData
 {
     struct Localization
