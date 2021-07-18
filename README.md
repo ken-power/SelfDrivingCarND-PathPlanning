@@ -65,6 +65,8 @@ I implemented a [Handler](src/handler.cpp) to handle the message events from the
 #include "path_planner.cpp"
 #include "trajectory.cpp"
 #include "handler.cpp"
+#include "waypoints.h"
+#include "car.h"
 
 ...
 
@@ -73,29 +75,27 @@ int main()
   PathPlanner path_planner;
   Trajectory trajectory = Trajectory(&path_planner);
   Handler handler = Handler(&trajectory);
+  MapWaypoints map_waypoints;  // map values for waypoint's x,y,s and d normalized normal vectors
 
   ...
   h.onMessage(
-          [&handler, &waypoint_data]
+          [&handler, &map_waypoints]
           (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,uWS::OpCode opCode)
   {
   ...
-  
-  // ------------------------------------------------
-  // -------- START OF PROJECT-SPECIFIC CODE --------
 
+      CarData car_data;  // data for the main car
+      ParseJsonTelemetryData(car_data, j);
+      
       // Define the actual (x,y) points we will use for the planner
       vector<double> next_x_vals;
       vector<double> next_y_vals;
-
+      
       handler.HandlePathPlanning(
-              waypoint_data,
+              map_waypoints,
               car_data,
               next_x_vals,
               next_y_vals);
-      
-      // -------- END OF PROJECT-SPECIFIC CODE --------
-      // ------------------------------------------------
       ...
       }
       ...
