@@ -16,12 +16,7 @@ PathPlanner *Trajectory::GetPathPlanner()
     return this->path_planner;
 }
 
-void Trajectory::DetermineStartingReference(double car_x,
-                                            double car_y,
-                                            double car_yaw,
-                                            double car_speed,
-                                            auto previous_path_x,
-                                            auto previous_path_y,
+void Trajectory::DetermineStartingReference(CarData & car,
                                             int previous_path_size,
                                             vector<double> & ptsx,
                                             vector<double> & ptsy,
@@ -34,25 +29,25 @@ void Trajectory::DetermineStartingReference(double car_x,
     if(previous_path_size < 2)
     {
         // use two points that make the path tangent to the car
-        double prev_car_x = car_x - cos(car_yaw);
-        double prev_car_y = car_y - sin(car_yaw);
+        double prev_car_x = car.localization.car_x - cos(car.localization.car_yaw);
+        double prev_car_y = car.localization.car_y - sin(car.localization.car_yaw);
 
         ptsx.push_back(prev_car_x);
-        ptsx.push_back(car_x);
+        ptsx.push_back(car.localization.car_x);
 
         ptsy.push_back(prev_car_y);
-        ptsy.push_back(car_y);
+        ptsy.push_back(car.localization.car_y);
 
-        reference_velocity = car_speed;
+        reference_velocity = car.localization.car_speed;
     }
     else  // use the previous path's end point as starting reference
     {
         // Redefine reference state as previous path end point
-        ref_x = previous_path_x[previous_path_size - 1];
-        ref_y = previous_path_y[previous_path_size - 1];
+        ref_x = car.previous_path.previous_path_x[previous_path_size - 1];
+        ref_y = car.previous_path.previous_path_y[previous_path_size - 1];
 
-        double ref_x_prev = previous_path_x[previous_path_size - 2];
-        double ref_y_prev = previous_path_y[previous_path_size - 2];
+        double ref_x_prev = car.previous_path.previous_path_x[previous_path_size - 2];
+        double ref_y_prev = car.previous_path.previous_path_y[previous_path_size - 2];
         ref_yaw = atan2(ref_y - ref_y_prev, ref_x - ref_x_prev);
         reference_velocity = this->path_planner->TargetVehicleSpeed();
 

@@ -7,18 +7,14 @@
 
 #include "path_planner.h"
 #include "waypoints.h"
+#include "car.h"
 
 class Trajectory
 {
 public:
     Trajectory(PathPlanner *path_planner);
 
-    void DetermineStartingReference(double car_x,
-                                    double car_y,
-                                    double car_yaw,
-                                    double car_speed,
-                                    auto previous_path_x,
-                                    auto previous_path_y,
+    void DetermineStartingReference(CarData & car,
                                     int previous_path_size,
                                     vector<double> & ptsx,
                                     vector<double> & ptsy,

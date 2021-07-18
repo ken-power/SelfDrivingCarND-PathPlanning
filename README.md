@@ -1,6 +1,6 @@
 # Path Planning Project
 
-I completed this project as part of [Udacity](https://www.udacity.com)'s [Self-driving Car Engineer Nanodegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013). 
+I completed this project as part of [Udacity](https://www.udacity.com)'s [Self-driving CarData Engineer Nanodegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013). 
 
 # Project Goal
 
@@ -46,7 +46,7 @@ There will be some latency between the simulator running and the path planner re
 **Valid Trajectories** | The car is able to drive at least 4.32 miles without incident.| The top right screen of the simulator shows the current/best miles driven without incident. Incidents include exceeding acceleration/jerk/speed, collision, and driving outside of the lanes. Each incident case is also listed below in more detail. | Done 
 | | The car drives according to the speed limit. | The car doesn't drive faster than the speed limit. Also the car isn't driving much slower than speed limit unless obstructed by traffic. | Done
 | | Max Acceleration and Jerk are not Exceeded.| The car does not exceed a total acceleration of 10 m/s^2 and a jerk of 10 m/s^3. | Done
-| | Car does not have collisions. | The car must not come into contact with any of the other cars on the road. | Done
+| | CarData does not have collisions. | The car must not come into contact with any of the other cars on the road. | Done
 | | The car stays in its lane, except for the time between changing lanes. | The car doesn't spend more than a 3 second length out side the lane lanes during changing lanes, and every other time the car stays inside one of the 3 lanes on the right hand side of the road. | Done
 | | The car is able to change lanes | The car is able to smoothly change lanes when it makes sense to do so, such as when behind a slower moving car and an adjacent lane is clear of other traffic. | Done
 **Reflection** | There is a reflection on how to generate paths.|The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation". | Open
@@ -112,6 +112,35 @@ int main()
 ```
 
 The code first creates a `PathPlanner` object, then uses that to create and initialize a `Trajectory` object. The `Handler` object is created and initialized using the `Trajectory` object.
+
+
+## Telemetry Data
+
+Here is an example of the telemetry data passed from the simultar in a JSON object.
+* `previous_path_x` is an array of doubles
+* `previous_path_y` is an array of doubles
+* `sensor_fusion` data is an array of arrays of doubles
+
+```text
+
+previous_path_x = [929.3538,929.7116,930.0726,930.4367,930.8041,931.1746,931.5482,931.925,932.305,932.6881,933.0744,933.4639,933.8565,934.2523,934.6512,935.0533,935.4585,935.8669,936.2784,936.6931,937.1109,937.5319,937.956,938.3832,938.8135,939.2469,939.6804,940.1138,940.5471,940.9803,941.4135,941.8466,942.2797,942.7126,943.1455,943.5784,944.0112,944.4439,944.8766,945.3091,945.7416,946.1741,946.6064,947.0387,947.4709,947.9031,948.3351,948.7671]
+previous_path_y = [1128.974,1128.987,1129,1129.013,1129.027,1129.041,1129.055,1129.07,1129.085,1129.1,1129.116,1129.132,1129.149,1129.166,1129.184,1129.203,1129.222,1129.242,1129.263,1129.284,1129.306,1129.329,1129.353,1129.377,1129.402,1129.428,1129.454,1129.481,1129.509,1129.537,1129.566,1129.596,1129.627,1129.658,1129.69,1129.723,1129.756,1129.79,1129.825,1129.86,1129.896,1129.933,1129.97,1130.008,1130.047,1130.087,1130.127,1130.168]
+
+ sensor_fusion = [
+ [0,893.2054,1124.788,21.1046,-0.006357825,108.6152,10.01459],
+ [1,1097.721,1179.32,18.37469,4.132454,320.2971,5.299209],
+ [2,851.775,1128.87,22.85236,0.1001407,67.20206,6.016924],
+ [3,1069.526,1173.91,18.21947,7.60966,291.1885,2.044408],
+ [4,862.811,1124.864,23.25937,-0.07619298,78.25157,9.984876],
+ [5,1088.623,1176.916,17.06661,5.189817,310.8874,5.436582],
+ [6,1064.369,1163.103,15.33794,6.362561,282.2615,10.02508],
+ [7,762.1,1425.2,0,0,6709.296,-270.7039],
+ [8,762.1,1429,0,0,6663.543,-273.1828],
+ [9,762.1,1432.9,0,0,6660.444,-275.5511],
+ [10,762.1,1436.3,0,0,6657.743,-277.6157],
+ [11,762.1,1441.7,0,0,6653.453,-280.8947]
+ ]
+```
 
 # Design Notes
 

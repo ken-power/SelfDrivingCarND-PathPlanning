@@ -7,6 +7,7 @@
 
 #include "path_planner.h"
 #include "trajectory.h"
+#include "car.h"
 
 class Handler
 {
@@ -14,14 +15,7 @@ public:
     Handler(Trajectory *trajectory);
 
     void HandlePathPlanning(const WaypointData & waypoint_data,
-                            double car_x,
-                            double car_y,
-                            double car_s,
-                            double car_yaw,
-                            double car_speed,
-                            auto previous_path_x,
-                            auto previous_path_y,
-                            auto sensor_fusion,
+                            CarData & car,
                             vector<double> & next_x_vals,
                             vector<double> & next_y_vals);
 

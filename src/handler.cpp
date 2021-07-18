@@ -14,24 +14,17 @@ Handler::Handler(Trajectory *trajectory)
 
 
 void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
-                                 double car_x,
-                                 double car_y,
-                                 double car_s,
-                                 double car_yaw,
-                                 double car_speed,
-                                 auto previous_path_x,
-                                 auto previous_path_y,
-                                 auto sensor_fusion,
+                                 CarData & car,
                                  vector<double> & next_x_vals,
                                  vector<double> & next_y_vals)
 {
-    int previous_path_size = previous_path_x.size();
+    int previous_path_size = car.previous_path.previous_path_x.size();
 
     // Start with remaining old path
     for(int i = 0; i < previous_path_size; i++)
     {
-        next_x_vals.push_back(previous_path_x[i]);
-        next_y_vals.push_back(previous_path_y[i]);
+        next_x_vals.push_back(car.previous_path.previous_path_x[i]);
+        next_y_vals.push_back(car.previous_path.previous_path_y[i]);
     }
 
     // create a list of widely-spaced (x,y) waypoints, evenly spaced at 30m
@@ -41,17 +34,12 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
 
     // reference x,y,yaw states
     // either we will reference the starting point as where the car is, or at the previous path's end point
-    double ref_x = car_x;
-    double ref_y = car_y;
-    double ref_yaw = Degrees2Radians(car_yaw);
+    double ref_x = car.localization.car_x;
+    double ref_y = car.localization.car_y;
+    double ref_yaw = Degrees2Radians(car.localization.car_yaw);
     double reference_velocity = 0.0;
 
-    this->trajectory->DetermineStartingReference(car_x,
-                                                 car_y,
-                                                 car_yaw,
-                                                 car_speed,
-                                                 previous_path_x,
-                                                 previous_path_y,
+    this->trajectory->DetermineStartingReference(car,
                                                  previous_path_size,
                                                  ptsx,
                                                  ptsy,
@@ -67,7 +55,7 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
                                                     waypoint_data.map_waypoints_x,
                                                     waypoint_data.map_waypoints_y);
 
-    double move = this->path_planner->PlanPath(frenet_coords[0], frenet_coords[1], sensor_fusion);
+    double move = this->path_planner->PlanPath(frenet_coords[0], frenet_coords[1], car.sensor_fusion);
     double lane = this->path_planner->CurrentLane();
     double next_d = (lane * 4) + 2 + move;
 
@@ -75,11 +63,11 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
     int check_lane = this->path_planner->GetLane(next_d);
     vector<double> front_vehicle = this->path_planner->NearestVehicle(frenet_coords[0],
                                                                       check_lane,
-                                                                      sensor_fusion,
+                                                                      car.sensor_fusion,
                                                                       true);
     vector<double> back_vehicle = this->path_planner->NearestVehicle(frenet_coords[0],
                                                                      check_lane,
-                                                                     sensor_fusion,
+                                                                     car.sensor_fusion,
                                                                      false);
 
     // Reset to current lane and leading vehicle if not enough room
@@ -95,7 +83,7 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
     vector<double> wp1;
     vector<double> wp2;
     vector<double> wp3;
-    this->trajectory->SetWaypoints(waypoint_data, car_s, next_d, wp1, wp2, wp3);
+    this->trajectory->SetWaypoints(waypoint_data, car.localization.car_s, next_d, wp1, wp2, wp3);
 
     ptsx.push_back(wp1[0]);
     ptsx.push_back(wp2[0]);
