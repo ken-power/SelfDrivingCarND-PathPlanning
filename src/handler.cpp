@@ -13,7 +13,7 @@ Handler::Handler(Trajectory *trajectory)
 }
 
 
-void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
+void Handler::HandlePathPlanning(const MapWaypoints & map_waypoints,
                                  CarData & car,
                                  vector<double> & next_x_vals,
                                  vector<double> & next_y_vals)
@@ -52,8 +52,8 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
     vector<double> frenet_coords = Cartesian2Frenet(ref_x,
                                                     ref_y,
                                                     ref_yaw,
-                                                    waypoint_data.map_waypoints_x,
-                                                    waypoint_data.map_waypoints_y);
+                                                    map_waypoints.x,
+                                                    map_waypoints.y);
 
     double move = this->path_planner->PlanPath(frenet_coords[0], frenet_coords[1], car.sensor_fusion);
     double lane = this->path_planner->CurrentLane();
@@ -83,7 +83,7 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
     vector<double> wp1;
     vector<double> wp2;
     vector<double> wp3;
-    this->trajectory->SetWaypoints(waypoint_data, car.localization.s, next_d, wp1, wp2, wp3);
+    this->trajectory->SetWaypoints(map_waypoints, car.localization.s, next_d, wp1, wp2, wp3);
 
     ptsx.push_back(wp1[0]);
     ptsx.push_back(wp2[0]);

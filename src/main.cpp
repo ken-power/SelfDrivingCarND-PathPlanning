@@ -29,7 +29,7 @@ int main()
     uWS::Hub h;
 
     // Load up map values for waypoint's x,y,s and d normalized normal vectors
-    WaypointData waypoint_data;
+    MapWaypoints map_waypoints;
 
     // Waypoint map to read from
     string map_file_ = "../data/highway_map.csv";
@@ -42,10 +42,10 @@ int main()
     string line;
     while(getline(in_map_, line))
     {
-        PopulateWaypointsData(waypoint_data, line);
+        PopulateWaypointsData(map_waypoints, line);
     }
 
-    h.onMessage([&handler, &waypoint_data]
+    h.onMessage([&handler, &map_waypoints]
                         (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                          uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
@@ -73,7 +73,7 @@ int main()
                 vector<double> next_x_vals;
                 vector<double> next_y_vals;
 
-                handler.HandlePathPlanning(waypoint_data,
+                handler.HandlePathPlanning(map_waypoints,
                                            car_data,
                                            next_x_vals,
                                            next_y_vals);

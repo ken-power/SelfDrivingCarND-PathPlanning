@@ -9,23 +9,23 @@
 #include "distance_utils.h"
 
 
-struct WaypointData
+struct MapWaypoints
 {
     // Load up map values for waypoint's x,y,s and d normalized normal vectors
-    vector<double> map_waypoints_x;
-    vector<double> map_waypoints_y;
-    vector<double> map_waypoints_s;
-    vector<double> map_waypoints_dx;
-    vector<double> map_waypoints_dy;
+    vector<double> x;
+    vector<double> y;
+    vector<double> s;
+    vector<double> dx;
+    vector<double> dy;
 };
 
 /**
  *
- * @param waypoint_data the waypoint data for the highway
+ * @param map_waypoints the waypoint data for the highway
  * @param data_row a row of data for a car on the highway; the format for each car is: `[ id, x, y, vx, vy, s, d]`.
 *
  */
-void PopulateWaypointsData(WaypointData & waypoint_data, const string & data_row)
+void PopulateWaypointsData(MapWaypoints & map_waypoints, const string & data_row)
 {
     istringstream iss(data_row);
     double x;
@@ -40,11 +40,11 @@ void PopulateWaypointsData(WaypointData & waypoint_data, const string & data_row
     iss >> d_x;
     iss >> d_y;
 
-    waypoint_data.map_waypoints_x.push_back(x);
-    waypoint_data.map_waypoints_y.push_back(y);
-    waypoint_data.map_waypoints_s.push_back(s);
-    waypoint_data.map_waypoints_dx.push_back(d_x);
-    waypoint_data.map_waypoints_dy.push_back(d_y);
+    map_waypoints.x.push_back(x);
+    map_waypoints.y.push_back(y);
+    map_waypoints.s.push_back(s);
+    map_waypoints.dx.push_back(d_x);
+    map_waypoints.dy.push_back(d_y);
 }
 
 

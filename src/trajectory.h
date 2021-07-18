@@ -23,7 +23,7 @@ public:
                                     double & ref_yaw,
                                     double & reference_velocity);
 
-    void SetWaypoints(const WaypointData & waypoint_data,
+    void SetWaypoints(const MapWaypoints & map_waypoints,
                       double car_s,
                       double next_d,
                       vector<double> & wp1,
