@@ -18,13 +18,13 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
                                  vector<double> & next_x_vals,
                                  vector<double> & next_y_vals)
 {
-    int previous_path_size = car.previous_path.previous_path_x.size();
+    int previous_path_size = car.previous_path.x.size();
 
     // Start with remaining old path
     for(int i = 0; i < previous_path_size; i++)
     {
-        next_x_vals.push_back(car.previous_path.previous_path_x[i]);
-        next_y_vals.push_back(car.previous_path.previous_path_y[i]);
+        next_x_vals.push_back(car.previous_path.x[i]);
+        next_y_vals.push_back(car.previous_path.y[i]);
     }
 
     // create a list of widely-spaced (x,y) waypoints, evenly spaced at 30m
@@ -34,9 +34,9 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
 
     // reference x,y,yaw states
     // either we will reference the starting point as where the car is, or at the previous path's end point
-    double ref_x = car.localization.car_x;
-    double ref_y = car.localization.car_y;
-    double ref_yaw = Degrees2Radians(car.localization.car_yaw);
+    double ref_x = car.localization.x;
+    double ref_y = car.localization.y;
+    double ref_yaw = Degrees2Radians(car.localization.yaw);
     double reference_velocity = 0.0;
 
     this->trajectory->DetermineStartingReference(car,
@@ -83,7 +83,7 @@ void Handler::HandlePathPlanning(const WaypointData & waypoint_data,
     vector<double> wp1;
     vector<double> wp2;
     vector<double> wp3;
-    this->trajectory->SetWaypoints(waypoint_data, car.localization.car_s, next_d, wp1, wp2, wp3);
+    this->trajectory->SetWaypoints(waypoint_data, car.localization.s, next_d, wp1, wp2, wp3);
 
     ptsx.push_back(wp1[0]);
     ptsx.push_back(wp2[0]);

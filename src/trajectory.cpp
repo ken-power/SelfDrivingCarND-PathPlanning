@@ -29,25 +29,25 @@ void Trajectory::DetermineStartingReference(CarData & car,
     if(previous_path_size < 2)
     {
         // use two points that make the path tangent to the car
-        double prev_car_x = car.localization.car_x - cos(car.localization.car_yaw);
-        double prev_car_y = car.localization.car_y - sin(car.localization.car_yaw);
+        double prev_car_x = car.localization.x - cos(car.localization.yaw);
+        double prev_car_y = car.localization.y - sin(car.localization.yaw);
 
         ptsx.push_back(prev_car_x);
-        ptsx.push_back(car.localization.car_x);
+        ptsx.push_back(car.localization.x);
 
         ptsy.push_back(prev_car_y);
-        ptsy.push_back(car.localization.car_y);
+        ptsy.push_back(car.localization.y);
 
-        reference_velocity = car.localization.car_speed;
+        reference_velocity = car.localization.speed;
     }
     else  // use the previous path's end point as starting reference
     {
         // Redefine reference state as previous path end point
-        ref_x = car.previous_path.previous_path_x[previous_path_size - 1];
-        ref_y = car.previous_path.previous_path_y[previous_path_size - 1];
+        ref_x = car.previous_path.x[previous_path_size - 1];
+        ref_y = car.previous_path.y[previous_path_size - 1];
 
-        double ref_x_prev = car.previous_path.previous_path_x[previous_path_size - 2];
-        double ref_y_prev = car.previous_path.previous_path_y[previous_path_size - 2];
+        double ref_x_prev = car.previous_path.x[previous_path_size - 2];
+        double ref_y_prev = car.previous_path.y[previous_path_size - 2];
         ref_yaw = atan2(ref_y - ref_y_prev, ref_x - ref_x_prev);
         reference_velocity = this->path_planner->TargetVehicleSpeed();
 
