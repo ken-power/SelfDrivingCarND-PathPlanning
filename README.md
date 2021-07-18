@@ -51,6 +51,18 @@ There will be some latency between the simulator running and the path planner re
 | | The car is able to change lanes | The car is able to smoothly change lanes when it makes sense to do so, such as when behind a slower moving car and an adjacent lane is clear of other traffic. | Done
 **Reflection** | There is a reflection on how to generate paths.|The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation". | Open
 
+I uploaded to YouTube a full MP4 video of the car successfully navigating the track, and meeting all project specifications. You can watch the full video here:
+
+[![Full Lap demo of Path Planner](https://img.youtube.com/vi/bQqwraRQjDE/0.jpg)](https://youtu.be/bQqwraRQjDE "Video of car driving autonomously for a full lap")
+
+This animated GIF shows an extract that demonstrates overtaking a car by moving to the left lane, amd also move safely from the left lane to the middle lane, and then to the right lane.
+
+![](videos/path_planning_sample1.gif))
+
+This animated GIF shows an extract that demonstrates overtaking a car by moving to the left lane, and then back to the center lane. Then it overtakes a car by moving from the center lane to the right lane.
+
+![](videos/path_planning_sample2.gif))
+
 # Solution Overview
 
 ## main.cpp
