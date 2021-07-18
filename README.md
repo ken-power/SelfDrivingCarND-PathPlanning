@@ -223,7 +223,7 @@ The data format for each car is: `[ id, x, y, vx, vy, s, d]`.
 
 The `vx, vy` values can be useful for predicting where the cars will be in the future. For instance, if you were to assume that the tracked car kept moving along the road, then its future predicted Frenet `s` value will be its current `s` value plus its (transformed) total velocity (m/s) multiplied by the time elapsed into the future (s).
 
-## Changing Lanes
+## Changing Lane
 
 The last consideration is how to create paths that can smoothly changes lanes. Any time the ego vehicle approaches a car in front of it that is moving slower than the speed limit, the ego vehicle should consider changing lanes.
 
@@ -252,14 +252,16 @@ src
  |-- distance_utils.h
  |-- json_utils.h
  |
- |-- waypoints.h
  |-- path_planner.h
  |-- path_planner.cpp
  |-- trajectory.h
  |-- trajectory.cpp
+ |-- cost_function_calculator.h
+ |-- cost_function_calculator.cpp
+ |-- waypoints.h
+ |-- car.h
  |-- handler.h
  |-- handler.cpp
- |-- car.h
  |
  |-- main.cpp
 ```
@@ -280,8 +282,12 @@ src
 * uWebSockets
     * Set up and install [uWebSocketIO](https://github.com/uWebSockets/uWebSockets)
     * Note: the branch `e94b6e1` is the version of `uWebSocketIO` that works with the Udacity simulator
+* JSON for Modern C++ >= version 3.0.0
+    * Available from https://github.com/nlohmann/json
+    * Included in this project in the header [json.hpp](src/json.hpp)
 * C++ cubic spline interpolation
     * The latest version is [from GitHub](https://github.com/ttk592/spline/)  
+    * Included in this project in the header [spline.h](src/spline.h)
 
 ## Basic Build Instructions
 
@@ -301,3 +307,11 @@ This is a **bad** example where the car just drives in circles. There are lots o
 # References
 
 * Tino Kluge. [Cubic Spline interpolation in C++](https://kluge.in-chemnitz.de/opensource/spline/). kluge.in-chemnitz.de/.
+* Werling, M., Ziegler, J., Kammel, S. and Thrun, S., 2010, May. Optimal trajectory generation for dynamic street scenarios in a frenet frame. In 2010 IEEE International Conference on Robotics and Automation (pp. 987-993). IEEE.
+* Mirowski, P., Grimes, M., Malinowski, M., Hermann, K.M., Anderson, K., Teplyashin, D., Simonyan, K., Zisserman, A. and Hadsell, R., 2018. Learning to navigate in cities without a map. Advances in Neural Information Processing Systems, 31, pp.2419-2430.
+* Krishnan, S., Ramakrishnan, R. and Arvindh, V., 2018. A look at motion planning for autonomous vehicles at an intersection. arXiv preprint arXiv:1806.07834.
+* Fridman, L., Terwilliger, J. and Jenik, B., 2018. Deeptraffic: Crowdsourced hyperparameter tuning of deep reinforcement learning systems for multi-agent dense traffic navigation. arXiv preprint arXiv:1801.02805.
+* Ni, J., Chen, Y., Chen, Y., Zhu, J., Ali, D. and Cao, W., 2020. A survey on theories and applications for self-driving cars based on deep learning methods. Applied Sciences, 10(8), p.2749.
+* Coad, J., Qiao, Z. and Dolan, J.M., 2020. Safe Trajectory Planning Using Reinforcement Learning for Self Driving. arXiv preprint arXiv:2011.04702.
+
+
