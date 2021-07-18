@@ -65,7 +65,46 @@ This animated GIF shows an extract that demonstrates overtaking a car by moving 
 
 # Solution Overview
 
-## main.cpp
+The content of [src](src) directory is as follows:
+
+```
+src
+ |-- Eigen-3.3/
+ |-- spline.h
+ |-- json.hpp
+ |
+ |-- coordinate_transforms.h
+ |-- distance_utils.h
+ |-- json_utils.h
+ |
+ |-- path_planner.h
+ |-- path_planner.cpp
+ |-- trajectory.h
+ |-- trajectory.cpp
+ |-- cost_function_calculator.h
+ |-- cost_function_calculator.cpp
+ |-- waypoints.h
+ |-- car.h
+ |-- handler.h
+ |-- handler.cpp
+ |
+ |-- main.cpp
+```
+
+`Eigen-3.3`, `spline.h`, and `json.hpp` are dependencies I imported for this project. A version of `main.cpp` was provided as a starting point. I modified `main.cpp` significantly, and created the remainder of the files for this project.
+
+Entity | Responsibilities
+:---|:---
+Path Planner | plan paths
+Trajectory | Build trajectories
+Cost Function Calculator | Assist driving decisions by calculating costs and benefits of particular scenarios
+Waypoint | Manage map waypoints
+Car | Manage data associated with the car, including localization, sensor fusion data, and previous path data
+Coordinate Transforms | Functions to transform between Frenet and Cartesian coordinates, and vice versa.
+Distance Utils | Some helper functions for working with distances. 
+JSON Utils | Helper functions for abstracting the details of marshalling JSON data.
+Handler | Serve as the entry point to path planning. Called when the event listener detects a telemetry event. Returns the control data that the event listener uses to respond to the simulator.
+
 
 The majority of the code in [main.cpp](src/main.cpp) is dedicated to handling communications with the simulator. We use the uWebSockets library to communicate with the simulator. The primary event handler for this project is `onMessage()`. 
 
@@ -119,34 +158,11 @@ int main()
 
 The code first creates a `PathPlanner` object, then uses that to create and initialize a `Trajectory` object. The `Handler` object is created and initialized using the `Trajectory` object.
 
+This sequence diagram illustrates the main flow that happens when we receive a telemetry message from the simulator:
 
-## Telemetry Data
+![](images/path_planning_sequence_diagram.png)
 
-Here is an example of the telemetry data passed from the simultar in a JSON object.
-* `previous_path_x` is an array of doubles, and maps to `CarData.PreviousPath.x` in [car.h](src/car.h)
-* `previous_path_y` is an array of doubles, and maps to `CarData.PreviousPath.y` in [car.h](src/car.h)
-* `sensor_fusion` data is an array of arrays of doubles, and maps to `CarData.sensor_fusion` in [car.h](src/car.h)
-
-```text
-
-x = [929.3538,929.7116,930.0726,930.4367,930.8041,931.1746,931.5482,931.925,932.305,932.6881,933.0744,933.4639,933.8565,934.2523,934.6512,935.0533,935.4585,935.8669,936.2784,936.6931,937.1109,937.5319,937.956,938.3832,938.8135,939.2469,939.6804,940.1138,940.5471,940.9803,941.4135,941.8466,942.2797,942.7126,943.1455,943.5784,944.0112,944.4439,944.8766,945.3091,945.7416,946.1741,946.6064,947.0387,947.4709,947.9031,948.3351,948.7671]
-y = [1128.974,1128.987,1129,1129.013,1129.027,1129.041,1129.055,1129.07,1129.085,1129.1,1129.116,1129.132,1129.149,1129.166,1129.184,1129.203,1129.222,1129.242,1129.263,1129.284,1129.306,1129.329,1129.353,1129.377,1129.402,1129.428,1129.454,1129.481,1129.509,1129.537,1129.566,1129.596,1129.627,1129.658,1129.69,1129.723,1129.756,1129.79,1129.825,1129.86,1129.896,1129.933,1129.97,1130.008,1130.047,1130.087,1130.127,1130.168]
-
- sensor_fusion = [
- [0,893.2054,1124.788,21.1046,-0.006357825,108.6152,10.01459],
- [1,1097.721,1179.32,18.37469,4.132454,320.2971,5.299209],
- [2,851.775,1128.87,22.85236,0.1001407,67.20206,6.016924],
- [3,1069.526,1173.91,18.21947,7.60966,291.1885,2.044408],
- [4,862.811,1124.864,23.25937,-0.07619298,78.25157,9.984876],
- [5,1088.623,1176.916,17.06661,5.189817,310.8874,5.436582],
- [6,1064.369,1163.103,15.33794,6.362561,282.2615,10.02508],
- [7,762.1,1425.2,0,0,6709.296,-270.7039],
- [8,762.1,1429,0,0,6663.543,-273.1828],
- [9,762.1,1432.9,0,0,6660.444,-275.5511],
- [10,762.1,1436.3,0,0,6657.743,-277.6157],
- [11,762.1,1441.7,0,0,6653.453,-280.8947]
- ]
-```
+This is a simplified view intended to show the relationships among the primary entities. There are many more details in the code for managing things like converting between Frenet and Cartesian coordinate, setting map maypoints, etc.
 
 # Design Notes
 
@@ -235,6 +251,25 @@ The data format for each car is: `[ id, x, y, vx, vy, s, d]`.
 
 The `vx, vy` values can be useful for predicting where the cars will be in the future. For instance, if you were to assume that the tracked car kept moving along the road, then its future predicted Frenet `s` value will be its current `s` value plus its (transformed) total velocity (m/s) multiplied by the time elapsed into the future (s).
 
+In the telemetry data we get from the simulator, `sensor_fusion` data is an array of arrays of doubles, and maps to `CarData.sensor_fusion` in [car.h](src/car.h). Here is an example:
+
+```text
+ sensor_fusion = [
+ [0,893.2054,1124.788,21.1046,-0.006357825,108.6152,10.01459],
+ [1,1097.721,1179.32,18.37469,4.132454,320.2971,5.299209],
+ [2,851.775,1128.87,22.85236,0.1001407,67.20206,6.016924],
+ [3,1069.526,1173.91,18.21947,7.60966,291.1885,2.044408],
+ [4,862.811,1124.864,23.25937,-0.07619298,78.25157,9.984876],
+ [5,1088.623,1176.916,17.06661,5.189817,310.8874,5.436582],
+ [6,1064.369,1163.103,15.33794,6.362561,282.2615,10.02508],
+ [7,762.1,1425.2,0,0,6709.296,-270.7039],
+ [8,762.1,1429,0,0,6663.543,-273.1828],
+ [9,762.1,1432.9,0,0,6660.444,-275.5511],
+ [10,762.1,1436.3,0,0,6657.743,-277.6157],
+ [11,762.1,1441.7,0,0,6653.453,-280.8947]
+ ]
+```
+
 ## Changing Lane
 
 The last consideration is how to create paths that can smoothly changes lanes. Any time the ego vehicle approaches a car in front of it that is moving slower than the speed limit, the ego vehicle should consider changing lanes.
@@ -250,34 +285,6 @@ The `Eigen-3.3` library can solve such linear equations. The `Frenet2Cartesian` 
 ## Code Style
 
 This project employs [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Code Structure
-The content of [src](src) directory is as follows:
-
-```
-src
- |-- Eigen-3.3/
- |-- spline.h
- |-- json.hpp
- |
- |-- coordinate_transforms.h
- |-- distance_utils.h
- |-- json_utils.h
- |
- |-- path_planner.h
- |-- path_planner.cpp
- |-- trajectory.h
- |-- trajectory.cpp
- |-- cost_function_calculator.h
- |-- cost_function_calculator.cpp
- |-- waypoints.h
- |-- car.h
- |-- handler.h
- |-- handler.cpp
- |
- |-- main.cpp
-```
-
 
 ## Important Dependencies
 
