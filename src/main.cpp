@@ -18,6 +18,7 @@ using nlohmann::json;
 using std::string;
 using std::vector;
 
+void ParseJsonTelemetryData(CarData & car_data, auto &j);
 
 int main()
 {
@@ -62,46 +63,9 @@ int main()
 
             if(event == "telemetry")
             {
-                // j[1] is the data JSON object
+                CarData car_data;  // data for the main car
+                ParseJsonTelemetryData(car_data, j);
 
-                // Main car's localization Data
-                CarData car_data;
-                car_data.localization.car_x = j[1]["x"];
-                car_data.localization.car_y = j[1]["y"];
-                car_data.localization.car_s = j[1]["s"];
-                car_data.localization.car_d = j[1]["d"];
-                car_data.localization.car_yaw = j[1]["yaw"];
-                car_data.localization.car_speed = j[1]["speed"];
-
-                // Previous path data given to the Planner
-                auto previous_path_x = j[1]["previous_path_x"];
-                auto previous_path_y = j[1]["previous_path_y"];
-
-                for(auto item : previous_path_x)
-                {
-                    car_data.previous_path.previous_path_x.push_back(item);
-                }
-
-                for(auto item : previous_path_y)
-                {
-                    car_data.previous_path.previous_path_y.push_back(item);
-                }
-
-                // Previous path's end s and d values
-                car_data.previous_path.end_path_s = j[1]["end_path_s"];
-                car_data.previous_path.end_path_d = j[1]["end_path_d"];
-
-                // Sensor Fusion Data, a list of all other cars on the same side of the road.
-                auto sensor_fusion = j[1]["sensor_fusion"];
-
-                for(auto item : sensor_fusion)
-                {
-                    car_data.sensor_fusion.push_back(item);
-                }
-
-                /**
-                 * Define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
-                 */
                 // ------------------------------------------------
                 // -------- START OF PROJECT-SPECIFIC CODE --------
 
@@ -157,4 +121,44 @@ int main()
     }
 
     h.run();
+}
+
+
+void ParseJsonTelemetryData(CarData & car_data, auto &j)
+{
+    // j[1] is the data JSON object
+
+    // Main car's localization Data
+    car_data.localization.car_x = j[1]["x"];
+    car_data.localization.car_y = j[1]["y"];
+    car_data.localization.car_s = j[1]["s"];
+    car_data.localization.car_d = j[1]["d"];
+    car_data.localization.car_yaw = j[1]["yaw"];
+    car_data.localization.car_speed = j[1]["speed"];
+
+    // Previous path data given to the Planner
+    auto previous_path_x = j[1]["previous_path_x"];
+    auto previous_path_y = j[1]["previous_path_y"];
+
+    for(auto item : previous_path_x)
+    {
+        car_data.previous_path.previous_path_x.push_back(item);
+    }
+
+    for(auto item : previous_path_y)
+    {
+        car_data.previous_path.previous_path_y.push_back(item);
+    }
+
+    // Previous path's end s and d values
+    car_data.previous_path.end_path_s = j[1]["end_path_s"];
+    car_data.previous_path.end_path_d = j[1]["end_path_d"];
+
+    // Sensor Fusion Data, a list of all other cars on the same side of the road.
+    auto sensor_fusion = j[1]["sensor_fusion"];
+
+    for(auto item : sensor_fusion)
+    {
+        car_data.sensor_fusion.push_back(item);
+    }
 }
