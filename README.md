@@ -84,18 +84,21 @@ int main()
   {
   ...
 
-      CarData car_data;  // data for the main car
-      ParseJsonTelemetryData(car_data, j);
-      
-      // Define the actual (x,y) points we will use for the planner
-      vector<double> next_x_vals;
-      vector<double> next_y_vals;
-      
-      handler.HandlePathPlanning(
-              map_waypoints,
-              car_data,
-              next_x_vals,
-              next_y_vals);
+      if(event == "telemetry")
+      {
+          // data for the main car
+          CarData car_data = GetCarData(j);
+          
+          // Define the actual (x,y) points we will use for the planner
+          vector<double> next_x_vals;
+          vector<double> next_y_vals;
+          
+          handler.HandlePathPlanning(
+                  map_waypoints,
+                  car_data,
+                  next_x_vals,
+                  next_y_vals);
+
       ...
       }
       ...
@@ -247,9 +250,9 @@ src
  |
  |-- coordinate_transforms.h
  |-- distance_utils.h
- |-- network_utils.h
- |-- waypoints.h
+ |-- json_utils.h
  |
+ |-- waypoints.h
  |-- path_planner.h
  |-- path_planner.cpp
  |-- trajectory.h

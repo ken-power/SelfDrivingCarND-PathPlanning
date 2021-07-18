@@ -1,5 +1,5 @@
-#ifndef PATH_PLANNING_NETWORK_UTILS_H
-#define PATH_PLANNING_NETWORK_UTILS_H
+#ifndef PATH_PLANNING_JSON_UTILS_H
+#define PATH_PLANNING_JSON_UTILS_H
 
 #include <cmath>
 #include <string>
@@ -78,4 +78,4 @@ CarData GetCarData(auto &j)
     return car_data;
 }
 
-#endif  // PATH_PLANNING_NETWORK_UTILS_H
+#endif  // PATH_PLANNING_JSON_UTILS_H
