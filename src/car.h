@@ -25,7 +25,7 @@ struct CarData
     {
         // Previous path data given to the Planner
         vector<double> x;
-        vector<double>  y;
+        vector<double> y;
 
         // Previous path's end s and d values
         double s = 0.0;

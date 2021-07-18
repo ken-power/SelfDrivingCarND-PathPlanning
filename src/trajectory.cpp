@@ -125,7 +125,7 @@ double Trajectory::CalculateTrajectory(vector<double> & next_x_vals,
         double target_dist = sqrt(pow(target_x, 2) + pow(target_y, 2));  // distance calculation from car to target
 
         double x_add_on = 0;  // start at the origin
-        const int max_acceleration = 10; // m/s/s
+        const int max_acceleration = 10; // meters per second per second
         const double acceleration = max_acceleration * 0.02 * 0.8; // Limit acceleration to acceptable range
 
         // Fill up the rest of our path planner after filling it with previous points, i.e., add on points
