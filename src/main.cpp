@@ -25,11 +25,9 @@ int main()
     PathPlanner path_planner;
     Trajectory trajectory = Trajectory(&path_planner);
     Handler handler = Handler(&trajectory);
+    MapWaypoints map_waypoints;  // map values for waypoint's x,y,s and d normalized normal vectors
 
     uWS::Hub h;
-
-    // Load up map values for waypoint's x,y,s and d normalized normal vectors
-    MapWaypoints map_waypoints;
 
     // Waypoint map to read from
     string map_file_ = "../data/highway_map.csv";
@@ -66,9 +64,6 @@ int main()
                 CarData car_data;  // data for the main car
                 ParseJsonTelemetryData(car_data, j);
 
-                // ------------------------------------------------
-                // -------- START OF PROJECT-SPECIFIC CODE --------
-
                 // Define the actual (x,y) points we will use for the planner
                 vector<double> next_x_vals;
                 vector<double> next_y_vals;
@@ -77,10 +72,6 @@ int main()
                                            car_data,
                                            next_x_vals,
                                            next_y_vals);
-
-
-                // -------- END OF PROJECT-SPECIFIC CODE --------
-                // ------------------------------------------------
 
                 json msgJson;
                 msgJson["next_x"] = next_x_vals;
