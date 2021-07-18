@@ -35,7 +35,7 @@ The highway's waypoints loop around so the frenet s value, distance along the ro
 # Details
 The car uses a perfect controller and will visit every `(x,y)` point it recieves in the list every .02 seconds. The units for the `(x,y)` points are in meters and the spacing of the points determines the speed of the car. The vector going from a point to the next point in the list dictates the angle of the car. Acceleration both in the tangential and normal directions is measured along with the jerk, the rate of change of total Acceleration. The `(x,y)` point paths that the planner recieves should not have a total acceleration that goes over 10 m/s^2, also the jerk should not go over 50 m/s^3. (NOTE: As this is BETA, these requirements might change. Also currently jerk is over a .02 second interval, it would probably be better to average total acceleration over 1 second and measure jerk from that.
 
-There will be some latency between the simulator running and the path planner returning a path, with optimized code usually its not very long maybe just 1-3 time steps. During this delay the simulator will continue using points that it was last given, because of this its a good idea to store the last points you have used so you can have a smooth transition. `previous_path_x`, and `previous_path_y` can be helpful for this transition since they show the last points given to the simulator controller with the processed points already removed. You would either return a path that extends this previous path or make sure to create a new path that has a smooth transition with this last path.
+There will be some latency between the simulator running and the path planner returning a path, with optimized code usually its not very long maybe just 1-3 time steps. During this delay the simulator will continue using points that it was last given, because of this its a good idea to store the last points you have used so you can have a smooth transition. The previous path's values for `x`, and `y` can be helpful for this transition since they show the last points given to the simulator controller with the processed points already removed. You would either return a path that extends this previous path or make sure to create a new path that has a smooth transition with this last path.
 
 
 # Project Specification
@@ -108,14 +108,14 @@ The code first creates a `PathPlanner` object, then uses that to create and init
 ## Telemetry Data
 
 Here is an example of the telemetry data passed from the simultar in a JSON object.
-* `previous_path_x` is an array of doubles
-* `previous_path_y` is an array of doubles
-* `sensor_fusion` data is an array of arrays of doubles
+* `previous_path_x` is an array of doubles, and maps to `CarData.PreviousPath.x` in [car.h](src/car.h)
+* `previous_path_y` is an array of doubles, and maps to `CarData.PreviousPath.y` in [car.h](src/car.h)
+* `sensor_fusion` data is an array of arrays of doubles, and maps to `CarData.sensor_fusion` in [car.h](src/car.h)
 
 ```text
 
-previous_path_x = [929.3538,929.7116,930.0726,930.4367,930.8041,931.1746,931.5482,931.925,932.305,932.6881,933.0744,933.4639,933.8565,934.2523,934.6512,935.0533,935.4585,935.8669,936.2784,936.6931,937.1109,937.5319,937.956,938.3832,938.8135,939.2469,939.6804,940.1138,940.5471,940.9803,941.4135,941.8466,942.2797,942.7126,943.1455,943.5784,944.0112,944.4439,944.8766,945.3091,945.7416,946.1741,946.6064,947.0387,947.4709,947.9031,948.3351,948.7671]
-previous_path_y = [1128.974,1128.987,1129,1129.013,1129.027,1129.041,1129.055,1129.07,1129.085,1129.1,1129.116,1129.132,1129.149,1129.166,1129.184,1129.203,1129.222,1129.242,1129.263,1129.284,1129.306,1129.329,1129.353,1129.377,1129.402,1129.428,1129.454,1129.481,1129.509,1129.537,1129.566,1129.596,1129.627,1129.658,1129.69,1129.723,1129.756,1129.79,1129.825,1129.86,1129.896,1129.933,1129.97,1130.008,1130.047,1130.087,1130.127,1130.168]
+x = [929.3538,929.7116,930.0726,930.4367,930.8041,931.1746,931.5482,931.925,932.305,932.6881,933.0744,933.4639,933.8565,934.2523,934.6512,935.0533,935.4585,935.8669,936.2784,936.6931,937.1109,937.5319,937.956,938.3832,938.8135,939.2469,939.6804,940.1138,940.5471,940.9803,941.4135,941.8466,942.2797,942.7126,943.1455,943.5784,944.0112,944.4439,944.8766,945.3091,945.7416,946.1741,946.6064,947.0387,947.4709,947.9031,948.3351,948.7671]
+y = [1128.974,1128.987,1129,1129.013,1129.027,1129.041,1129.055,1129.07,1129.085,1129.1,1129.116,1129.132,1129.149,1129.166,1129.184,1129.203,1129.222,1129.242,1129.263,1129.284,1129.306,1129.329,1129.353,1129.377,1129.402,1129.428,1129.454,1129.481,1129.509,1129.537,1129.566,1129.596,1129.627,1129.658,1129.69,1129.723,1129.756,1129.79,1129.825,1129.86,1129.896,1129.933,1129.97,1130.008,1130.047,1130.087,1130.127,1130.168]
 
  sensor_fusion = [
  [0,893.2054,1124.788,21.1046,-0.006357825,108.6152,10.01459],
@@ -155,7 +155,7 @@ Acceleration is calculated by comparing the rate of change of average speed over
 
 Part of the total acceleration is the normal component, `AccN` which measures the centripetal acceleration from turning. The tighter and faster a turn is made, the higher the `AccN` value will be.
 
-For this project we need to consider how to minimize total acceleration and jerk by gradually increasing and decreasing point path spacing based on the `car_speed` variable.
+For this project we need to consider how to minimize total acceleration and jerk by gradually increasing and decreasing point path spacing based on the `CarData.Localization.speed` variable.
 
 ## Complex Paths
 
@@ -256,6 +256,7 @@ src
  |-- trajectory.cpp
  |-- handler.h
  |-- handler.cpp
+ |-- car.h
  |
  |-- main.cpp
 ```
