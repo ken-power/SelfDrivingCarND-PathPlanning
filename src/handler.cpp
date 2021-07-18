@@ -55,7 +55,7 @@ void Handler::HandlePathPlanning(const MapWaypoints & map_waypoints,
                                                     map_waypoints.x,
                                                     map_waypoints.y);
 
-    double move = this->path_planner->PlanPath(frenet_coords[0], frenet_coords[1], car.sensor_fusion);
+    double move = this->path_planner->MoveDistance(frenet_coords[0], frenet_coords[1], car.sensor_fusion);
     double lane = this->path_planner->CurrentLane();
     double next_d = (lane * 4) + 2 + move;
 
@@ -71,7 +71,7 @@ void Handler::HandlePathPlanning(const MapWaypoints & map_waypoints,
                                                                      false);
 
     // Reset to current lane and leading vehicle if not enough room
-    if(front_vehicle[0] < 10 or back_vehicle[0] < 10 or this->path_planner->AverageScores()[check_lane] <= -5)
+    if(front_vehicle[0] < 10 or back_vehicle[0] < 10 or this->path_planner->AverageLaneScores()[check_lane] <= -5)
     {
         next_d = (lane * 4) + 2;
         if(check_lane != lane)

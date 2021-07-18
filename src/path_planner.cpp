@@ -3,8 +3,9 @@
 //
 #include<cmath>
 #include "path_planner.h"
+#include "cost_function_calculator.h"
 
-int PathPlanner::PlanPath(double s, double d, const vector<vector<double>>& sensor_fusion)
+int PathPlanner::MoveDistance(double s, double d, const vector<vector<double>> & sensor_fusion)
 {
     int lane = GetLane(d);
     int new_lane;
@@ -12,52 +13,59 @@ int PathPlanner::PlanPath(double s, double d, const vector<vector<double>>& sens
 
     current_lane = lane; // Keep the current lane to later calculate desired move
 
-    // check if blocked, i.e. car is within 20 meters
-    if(distance > 20)
+    const int min_threshold_distance = 20;
+    // check if blocked, i.e. car is within min_threshold_distance of 20 meters
+
+    if(distance > min_threshold_distance)
     { // if lots of space, stay in lane and go near the speed limit
         new_lane = lane;
         target_vehicle_speed = 22.352 - 0.5;
-        average_scores = {0, 0, 0}; // Reset average scores for laneScore()
+        average_lane_scores = {0, 0, 0}; // Reset average scores for each lane
         return 0;
     }
     else
     {
-        new_lane = BestLane(s, lane, sensor_fusion);
+        new_lane = ChooseLaneForNextStep(s, lane, sensor_fusion);
         vector<double> vehicle = NearestVehicle(s, new_lane, sensor_fusion, true);
         target_vehicle_speed = vehicle[1];
     }
 
     // Space between middle of each lane is four meters, so move accordingly
+    const int lane_width = 4;  // Width between middle of each lane is 4 meters
     if(new_lane == lane)
     {
         return 0;
     }
     else if(new_lane < lane)
     {
-        return -4;
+        return -lane_width;
     }
     else
     {
-        return 4;
+        return lane_width;
     }
 }
 
+/**
+ * Check which lane the d-value comes from. Assumes a 3-lane highway, where
+ * 0 == left lane, 1 == middle lane, 2 == right lane.
+ * @param d
+ * @return the lane corresponding to the d-value
+ */
 int PathPlanner::GetLane(double d)
 {
-    // Check which lane the d-value comes from
-    // Left is 0, middle is 1, right is 2
     int lane;
     if(d < 4)
     {
-        lane = 0;
+        lane = Left;
     }
     else if(d < 8)
     {
-        lane = 1;
+        lane = Middle;
     }
     else
     {
-        lane = 2;
+        lane = Right;
     }
     return lane;
 }
@@ -110,60 +118,51 @@ vector<double> PathPlanner::NearestVehicle(double s, int lane, vector<vector<dou
     return {dist, velocity};
 }
 
-int PathPlanner::BestLane(double s, int lane, vector<vector<double>> sensor_fusion)
+int PathPlanner::ChooseLaneForNextStep(double s, int current_lane, const vector<vector<double>> & sensor_fusion)
 {
     vector<double> scores = {0, 0, 0};
     vector<double> front_vehicle;
     vector<double> back_vehicle;
 
-    for(int i = 0; i < 3; i++)
+    for(int lane_number = 0; lane_number < 3; lane_number++)
     {
-        if(i == lane)
-        {  // benefit to keeping lane
-            scores[i] += 0.5;
-        }
-        front_vehicle = NearestVehicle(s, i, sensor_fusion, true);
-        back_vehicle = NearestVehicle(s, i, sensor_fusion, false);
-        if(front_vehicle[0] > 1000 and back_vehicle[0] > 1000)
+        if(lane_number == current_lane)
         {
-            scores[i] += 5; // if wide open lane, move into that lane
-        }
-        else
-        {
-            if(front_vehicle[0] < 10)
-            {
-                scores[i] -= 5; // if car too close in front, negative score
-            }
-            if(back_vehicle[0] < 10)
-            {
-                scores[i] -= 5; // if car too close in back, negative score
-            }
-            scores[i] += 1 - (10 / (front_vehicle[0] / 3)); // benefit for large open distance in lane in front
-            scores[i] += 1 - (10 / (back_vehicle[0] / 3)); // benefit for large open distance in lane in back
-            scores[i] += 1 - (10 / (front_vehicle[1] / 2)); // benefit for faster car speed in lane in front
-            scores[i] += 1 / (back_vehicle[1] / 2); // benefit for slower car speed in lane in back
+            scores[lane_number] += CostFunctionCalculator::KeepCurrentLane();
         }
 
-        // Simple in-exact calculation for scores over the last ten iterations
-        average_scores[i] = (average_scores[i] * 10) - average_scores[i];
-        average_scores[i] += scores[i];
-        average_scores[i] /= 10;
+        front_vehicle = NearestVehicle(s, lane_number, sensor_fusion, true);
+        back_vehicle = NearestVehicle(s, lane_number, sensor_fusion, false);
+
+        // Apply cost function calculations to help choose the lane for the next step in the path
+        scores = CostFunctionCalculator::GetScoresForLane(scores, lane_number, front_vehicle, back_vehicle);
+        CostFunctionCalculator::UpdateAverageLaneScores(scores, lane_number, average_lane_scores);
     }
 
-    // Only compare applicable lanes
-    if(lane == 0)
+    return GetNextLane(current_lane);
+}
+
+
+int PathPlanner::GetNextLane(int current_lane)
+{
+    if(current_lane == Left)  // left lane
     {
-        return max_element(average_scores.begin(), average_scores.end() - 1) - average_scores.begin();
+        return max_element(average_lane_scores.begin(), average_lane_scores.end() - 1) - average_lane_scores.begin();
     }
-    else if(lane == 1)
+    else if(current_lane == Middle)  // middle lane
     {
-        return max_element(average_scores.begin(), average_scores.end()) - average_scores.begin();
+        return max_element(average_lane_scores.begin(), average_lane_scores.end()) - average_lane_scores.begin();
     }
-    else
+    else if(current_lane == Right) // right lane
     {
-        return max_element(average_scores.begin() + 1, average_scores.end()) - average_scores.begin();
+        return max_element(average_lane_scores.begin() + 1, average_lane_scores.end()) - average_lane_scores.begin();
+    }
+    else  // default to this if we get an invalid lane
+    {
+        return max_element(average_lane_scores.begin() + 1, average_lane_scores.end()) - average_lane_scores.begin();
     }
 }
+
 
 int PathPlanner::CurrentLane() const
 {
@@ -185,8 +184,8 @@ void PathPlanner::SetTargetVehicleSpeed(double targetVehicleSpeed)
     target_vehicle_speed = targetVehicleSpeed;
 }
 
-const vector<double> & PathPlanner::AverageScores() const
+const vector<double> & PathPlanner::AverageLaneScores() const
 {
-    return average_scores;
+    return average_lane_scores;
 }
 
