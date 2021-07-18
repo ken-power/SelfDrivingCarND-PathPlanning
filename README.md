@@ -76,7 +76,7 @@ int main()
 
   ...
   h.onMessage(
-          [&handler, &map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy]
+          [&handler, &waypoint_data]
           (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,uWS::OpCode opCode)
   {
   ...
@@ -87,19 +87,10 @@ int main()
       // Define the actual (x,y) points we will use for the planner
       vector<double> next_x_vals;
       vector<double> next_y_vals;
-      
+
       handler.HandlePathPlanning(
-              map_waypoints_x,
-              map_waypoints_y,
-              map_waypoints_s,
-              car_x,
-              car_y,
-              car_s,
-              car_yaw,
-              car_speed,
-              previous_path_x,
-              previous_path_y,
-              sensor_fusion,
+              waypoint_data,
+              car_data,
               next_x_vals,
               next_y_vals);
       
