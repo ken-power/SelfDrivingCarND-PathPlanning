@@ -49,7 +49,7 @@ There will be some latency between the simulator running and the path planner re
 | | CarData does not have collisions. | The car must not come into contact with any of the other cars on the road. | Done
 | | The car stays in its lane, except for the time between changing lanes. | The car doesn't spend more than a 3 second length out side the lane lanes during changing lanes, and every other time the car stays inside one of the 3 lanes on the right hand side of the road. | Done
 | | The car is able to change lanes | The car is able to smoothly change lanes when it makes sense to do so, such as when behind a slower moving car and an adjacent lane is clear of other traffic. | Done
-**Reflection** | There is a reflection on how to generate paths.|The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation". | Open
+**Reflection** | There is a reflection on how to generate paths.|The code model for generating paths is described in detail. This can be part of the README or a separate doc labeled "Model Documentation". | Done
 
 I uploaded to YouTube a full MP4 video of the car successfully navigating the track, and meeting all project specifications. You can watch the full video here:
 
@@ -62,6 +62,10 @@ This animated GIF shows an extract that demonstrates overtaking a car by moving 
 This animated GIF shows an extract that demonstrates overtaking a car by moving to the left lane, and then back to the center lane. Then it overtakes a car by moving from the center lane to the right lane.
 
 ![](videos/path_planning_sample2.gif))
+
+For contrast, here is a **bad** example where the car just drives in circles. There are lots of collisions, and the car exceeds acceleration, speed, and jerk limits.
+
+![Driving in Circles](videos/driving_in_circles.gif)
 
 # Solution Overview
 
@@ -91,10 +95,11 @@ src
  |-- main.cpp
 ```
 
-`Eigen-3.3`, `spline.h`, and `json.hpp` are dependencies I imported for this project. A version of `main.cpp` was provided as a starting point. I modified `main.cpp` significantly, and created the remainder of the files for this project.
+`Eigen-3.3`, `spline.h`, and `json.hpp` are [3rd-party dependencies](#important-dependencies) I imported for this project. The remainder of the files are created for this project. Here is a summary of their responsibilities: 
 
 Entity | Responsibilities
 :---|:---
+main|The entry point - contains the event listeners that capture events from the simulator and send messages to the simulator.
 Path Planner | plan paths
 Trajectory | Build trajectories
 Cost Function Calculator | Assist driving decisions by calculating costs and benefits of particular scenarios
@@ -108,7 +113,7 @@ Handler | Serve as the entry point to path planning. Called when the event liste
 
 The majority of the code in [main.cpp](src/main.cpp) is dedicated to handling communications with the simulator. We use the uWebSockets library to communicate with the simulator. The primary event handler for this project is `onMessage()`. 
 
-I implemented a [Handler](src/handler.cpp) to handle the message events from the simulator. Every time an `onMessqage` event is received from the simulator, we call the `handle.HandlePathPlanning()` function. This one function call serves as the entry point to my Path Planning implementation, and abstracts away the details of how I implement path planning. This also means I can try different implementation options without changing the event handling code.   
+I implemented a [Handler](src/handler.cpp) to handle the message events from the simulator. Every time `main` receive an `onMessqage` event from the simulator, the event listener calls the `handle.HandlePathPlanning()` function. This one function call serves as the entry point to my Path Planning implementation, and abstracts away the details of how I implement path planning. This also means I can try different implementation options without changing the event handling code.   
 
 ```c++
 ...
@@ -173,6 +178,25 @@ The car transmits its location, along with its sensor fusion data, which estimat
 ## Point Paths
 The path planner should output a list of `x` and `y` global map coordinates. Each pair of `x` and `y` coordinates is a point, and all the points together form a trajectory. We can use any number of points that we want, but the `x` list should be the same length as the `y` list.
 
+These are represented in the code by `next_x_vals` and `next_y_vals`. These values are populated by my path planner, and sent in a JSON message to the simulator, as shwon: 
+
+```c++
+...
+     handler.HandlePathPlanning(map_waypoints,
+                                 car_data,
+                                 next_x_vals,
+                                 next_y_vals);
+
+      json msgJson;
+      msgJson["next_x"] = next_x_vals;
+      msgJson["next_y"] = next_y_vals;
+
+      auto msg = "42[\"control\"," + msgJson.dump() + "]";
+
+      ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+...
+```
+
 Every 20 ms the car moves to the next point on the list. The car's new rotation becomes the line between the previous waypoint and the car's new location.
 
 The car moves from point to point perfectly, so we don't have to worry about building a controller for this project.
@@ -184,9 +208,9 @@ The velocity of the car depends on the spacing of the points. Because the car mo
 
 Acceleration is calculated by comparing the rate of change of average speed over intervals of 0.2 seconds. The jerk is calculated as the average acceleration over 1-second intervals. In order for the passenger to have an enjoyable ride both the jerk and the total acceleration should not exceed 10 m/s^2.
 
-Part of the total acceleration is the normal component, `AccN` which measures the centripetal acceleration from turning. The tighter and faster a turn is made, the higher the `AccN` value will be.
+Part of the total acceleration is the normal component, `acceleration` which measures the centripetal acceleration from turning. The tighter and faster a turn is made, the higher the `acceleration` value will be.
 
-For this project we need to consider how to minimize total acceleration and jerk by gradually increasing and decreasing point path spacing based on the `CarData.Localization.speed` variable.
+For this project we need to consider how to minimize total acceleration and jerk by gradually increasing and decreasing point path spacing based on the `speed` variable in [CarData.Localization](src/car.h).
 
 ## Complex Paths
 
@@ -194,7 +218,70 @@ For this project we need to consider how to minimize total acceleration and jerk
 
 Using information from the previous path ensures that there is a smooth transition from cycle to cycle. But the more waypoints we use from the previous path, the less the new path will reflect dynamic changes in the environment.
 
+The `CarData` struct in [car.h](src/car.h) manages the previous path data:
+
+```c++
+
+struct CarData
+{
+    ...
+    
+    struct PreviousPath
+    {
+        // Previous path data given to the Planner
+        vector<double> x;
+        vector<double>  y;
+
+        // Previous path's end s and d values
+        double s = 0.0;
+        double d = 0.0;
+    } previous_path;
+    
+    ...
+};
+
+```
+
 Ideally, we might only use a few waypoints from the previous path and then generate the rest of the new path based on new data from the car's sensor fusion information.
+
+The function `Trajectory::DetermineStartingReference` in [trajectory.cpp](src/trajectory.cpp) does exantly this:
+
+```c++
+    // if previous size is almost empty, use the car as starting reference
+    if(previous_path_size < 2)
+    {
+        // use two points that make the path tangent to the car
+        double prev_car_x = car.localization.x - cos(car.localization.yaw);
+        double prev_car_y = car.localization.y - sin(car.localization.yaw);
+
+        ptsx.push_back(prev_car_x);
+        ptsx.push_back(car.localization.x);
+
+        ptsy.push_back(prev_car_y);
+        ptsy.push_back(car.localization.y);
+
+        reference_velocity = car.localization.speed;
+    }
+    else  // use the previous path's end point as starting reference
+    {
+        // Redefine reference state as previous path end point
+        ref_x = car.previous_path.x[previous_path_size - 1];
+        ref_y = car.previous_path.y[previous_path_size - 1];
+
+        double ref_x_prev = car.previous_path.x[previous_path_size - 2];
+        double ref_y_prev = car.previous_path.y[previous_path_size - 2];
+        ref_yaw = atan2(ref_y - ref_y_prev, ref_x - ref_x_prev);
+        reference_velocity = this->path_planner->TargetVehicleSpeed();
+
+        // Use two points that make the path tangent to the previous path's end point
+        ptsx.push_back(ref_x_prev);
+        ptsx.push_back(ref_x);
+
+        ptsy.push_back(ref_y_prev);
+        ptsy.push_back(ref_y);
+    }
+
+```
 
 ### Timing
 The simulator runs a cycle every 20 ms (50 frames per second), but my C++ path planning program will provide a new path at least one 20 ms cycle behind. The simulator will simply keep progressing down its last given path while it waits for a new generated path.
@@ -224,6 +311,10 @@ The `s` value is the distance along the direction of the road. The first waypoin
 The `d` vector has a magnitude of `1` and points perpendicular to the road in the direction of the right-hand side of the road. The `d` vector can be used to calculate lane positions. For example, if you want to be in the left lane at some waypoint just add the waypoint's `(x,y)` coordinates with the `d` vector multiplied by 2. Since the lane is 4 m wide, the middle of the left lane (the lane closest to the double-yellow dividing line) is 2 m from the waypoint.
 
 If you would like to be in the middle lane, add the waypoint's coordinates to the `d` vector multiplied by 6 = (2+4), since the center of the middle lane is 4 m from the center of the left lane, which is itself 2 m from the double-yellow dividing line and the waypoints.
+
+
+
+
 ### Converting Frenet Coordinates
 
 There is a helper function, `Frenet2Cartesian()`, in [coordinate_transforms.h](src/coordinate_transforms.h) which takes in Frenet `(s,d)` coordinates and transforms them to `(x,y)` coordinates.
@@ -316,12 +407,6 @@ This project employs [Google's C++ style guide](https://google.github.io/stylegu
     * On Windows, you may need to run: `cmake .. -G "Unix Makefiles" && make`
 4. Run it: `./path_planning`
 
-
-# Some Example Output
-
-This is a **bad** example where the car just drives in circles. There are lots of collisions, and the car exceeds acceleration, speed, and jerk limits. 
-
-![Driving in Circles](videos/driving_in_circles.gif)
 
 # References
 
