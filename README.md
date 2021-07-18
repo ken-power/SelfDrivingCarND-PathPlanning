@@ -63,7 +63,7 @@ This animated GIF shows an extract that demonstrates overtaking a car by moving 
 
 ![](videos/path_planning_sample2.gif))
 
-For contrast, here is a **bad** example where the car just drives in circles. There are lots of collisions, and the car exceeds acceleration, speed, and jerk limits.
+For contrast, here is a **bad** example where the car just drives in circles. There are lots of collisions, and the car exceeds acceleration, speed, and jerk limits. I created this when I was learning how to get the car to move - this is not part of the current implementation. 
 
 ![Driving in Circles](videos/driving_in_circles.gif)
 
@@ -100,13 +100,13 @@ src
 Entity | Responsibilities
 :---|:---
 main|The entry point - contains the event listeners that capture events from the simulator and send messages to the simulator.
-Path Planner | plan paths
-Trajectory | Build trajectories
-Cost Function Calculator | Assist driving decisions by calculating costs and benefits of particular scenarios
-Waypoint | Manage map waypoints
-Car | Manage data associated with the car, including localization, sensor fusion data, and previous path data
+Path Planner | Plan a path by deciding whether to move left, right, or stay in the same lane. Work with the Cost Function Calculator to decide which lane to be in for the next step of the path. Figure out the lead vehicle's current speed, and set the target speed for the vehicle.
+Trajectory | Determine the starting reference, set waypoints, and calculate trajectories. 
+Cost Function Calculator | Assist driving decisions by calculating costs and benefits of particular scenarios.
+Waypoint | Manage map values for waypoint's `x`,`y`,`s` and `d` normalized normal vectors. Calculate closest waypoint to current `(x, y)` position. Figure out the next waypoint of the closest waypoint. 
+Car | Manage data associated with the car, including localization, sensor fusion data, and previous path data.
 Coordinate Transforms | Functions to transform between Frenet and Cartesian coordinates, and vice versa.
-Distance Utils | Some helper functions for working with distances. 
+Distance Utils | Some helper functions for working with distances, e.g. converting between degrees and radians.
 JSON Utils | Helper functions for abstracting the details of marshalling JSON data.
 Handler | Serve as the entry point to path planning. Called when the event listener detects a telemetry event. Returns the control data that the event listener uses to respond to the simulator.
 
@@ -367,7 +367,7 @@ The last consideration is how to create paths that can smoothly changes lanes. A
 
 The car should only change lanes if such a change would be safe, and also if the lane change would help it move through the flow of traffic better.
 
-For safety, a lane change path should optimize the distance away from other traffic. For comfort, a lane change path should also result in low acceleration and jerk. The acceleration and jerk part can be solved from linear equations for `s` and `d` functions. Examples of this can be found in "Quintic Polynomial Solver" and "Polynomial Trajectory".
+For safety, a lane change path should optimize the distance away from other traffic. For comfort, a lane change path should also result in low acceleration and jerk. The acceleration and jerk part can be solved from linear equations for `s` and `d` functions. 
 
 The `Eigen-3.3` library can solve such linear equations. The `Frenet2Cartesian` helper function can transform `(s,d)` points to `(x,y)` points for the returned path.
 
